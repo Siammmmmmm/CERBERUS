@@ -1,11 +1,3 @@
-/* Blink Example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -16,7 +8,7 @@
 #include "led_strip.h"
 #include "sdkconfig.h"
 
-static const char *TAG = "cerberus";
+static const char *TAG = "CERBERUS";
 
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 #define UART_NUM        UART_NUM_0
@@ -107,8 +99,8 @@ void uart_task(void *pvParameters) {
     char    cmd[BUF_SIZE];
     int     cmd_len = 0;
 
-    uart_write_bytes(UART_NUM, "Cerberus device ready\n", 22);
-    ESP_LOGI(TAG, "Cerberus device ready — waiting for commands");
+    uart_write_bytes(UART_NUM, "CERBERUS device ready\n", 22);
+    ESP_LOGI(TAG, "CERBERUS device ready — waiting for commands");
 
     while (1) {
         int len = uart_read_bytes(UART_NUM, buf, sizeof(buf) - 1,

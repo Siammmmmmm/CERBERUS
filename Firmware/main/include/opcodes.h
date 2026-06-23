@@ -9,10 +9,10 @@
 #define CMD_DELETE_CRED   0x06
 #define CMD_LOCK          0x07
 
-#define RES_PONG          0x81
-#define RES_OK            0x82
-#define RES_NACK          0x83
-#define RES_METADATA      0x84
-#define RES_PASSWORD      0x85
+#define RES_PONG          0x21
+#define RES_OK            0x22
+#define RES_NACK          0x23
+#define RES_METADATA      0x24
+#define RES_PASSWORD      0x25
 
 #endif // OPCODES_H
