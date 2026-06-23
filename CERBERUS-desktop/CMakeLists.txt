@@ -11,6 +11,7 @@ qt_add_executable(CERBERUS-desktop
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    Include/opCodes.h
 )
 
 target_link_libraries(CERBERUS-desktop

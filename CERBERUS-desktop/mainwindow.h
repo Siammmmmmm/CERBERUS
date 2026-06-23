@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSerialPort>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,9 +19,12 @@ public:
     ~MainWindow() override;
 
 private slots:
-    // void on_pressButton_clicked();
+    void on_pressButton_clicked();
+    void onDataReceived();
 
 private:
     Ui::MainWindow *ui;
+    QSerialPort *serial;
+    void connectToDevice();
 };
 #endif // MAINWINDOW_H

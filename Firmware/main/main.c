@@ -7,51 +7,38 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "esp_log.h"
 #include "led_strip.h"
 #include "sdkconfig.h"
 
-static const char *TAG = "example";
+static const char *TAG = "cerberus";
 
-/* Use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
-   or you can edit the following line and set a number here.
-*/
 #define BLINK_GPIO CONFIG_BLINK_GPIO
+#define UART_NUM        UART_NUM_0
+#define UART_TX_PIN     43
+#define UART_RX_PIN     44
+#define BUF_SIZE        256
 
 static uint8_t s_led_state = 0;
-
-#ifdef CONFIG_BLINK_LED_STRIP
-
 static led_strip_handle_t led_strip;
 
-static void blink_led(void)
-{
-    /* If the addressable LED is enabled */
-    if (s_led_state) {
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-        led_strip_set_pixel(led_strip, 0, 16, 16, 16);
-        /* Refresh the strip to send data */
-        led_strip_refresh(led_strip);
-    } else {
-        /* Set all LED off to clear all pixels */
-        led_strip_clear(led_strip);
-    }
-}
+// ── LED ──────────────────────────────────────────────────────────────────────
 
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink addressable LED!");
-    /* LED strip initialization with the GPIO and pixels number*/
+static void configure_led(void) {
+    ESP_LOGI(TAG, "Configuring addressable LED");
     led_strip_config_t strip_config = {
         .strip_gpio_num = BLINK_GPIO,
-        .max_leds = 1, // at least one LED on board
+        .max_leds = 1,
     };
+
 #if CONFIG_BLINK_LED_STRIP_BACKEND_RMT
     led_strip_rmt_config_t rmt_config = {
-        .resolution_hz = 10 * 1000 * 1000, // 10MHz
+        .resolution_hz = 10 * 1000 * 1000,
         .flags.with_dma = false,
     };
     ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
@@ -64,41 +51,95 @@ static void configure_led(void)
 #else
 #error "unsupported LED strip backend"
 #endif
-    /* Set all LED off to clear all pixels */
     led_strip_clear(led_strip);
 }
 
-#elif CONFIG_BLINK_LED_GPIO
-
-static void blink_led(void)
-{
-    /* Set the GPIO level according to the state (LOW or HIGH)*/
-    gpio_set_level(BLINK_GPIO, s_led_state);
+static void led_set_color(uint8_t r, uint8_t g, uint8_t b) {
+    led_strip_set_pixel(led_strip, 0, r, g, b);
+    led_strip_refresh(led_strip);
 }
 
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
-    gpio_reset_pin(BLINK_GPIO);
-    /* Set the GPIO as a push/pull output */
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+static void led_off(void) {
+    led_strip_clear(led_strip);
 }
 
-#else
-#error "unsupported LED type"
-#endif
+// ── UART ─────────────────────────────────────────────────────────────────────
 
-void app_main(void)
-{
+static void uart_init(void) {
+    uart_config_t uart_config = {
+        .baud_rate  = 115200,
+        .data_bits  = UART_DATA_8_BITS,
+        .parity     = UART_PARITY_DISABLE,
+        .stop_bits  = UART_STOP_BITS_1,
+        .flow_ctrl  = UART_HW_FLOWCTRL_DISABLE,
+    };
+    uart_driver_install(UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);
+    uart_param_config(UART_NUM, &uart_config);
+    uart_set_pin(UART_NUM, UART_TX_PIN, UART_RX_PIN,
+                 UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+}
 
-    /* Configure the peripheral according to the LED type */
-    configure_led();
+// ── COMMAND HANDLER ───────────────────────────────────────────────────────────
+
+static void process_command(const char *cmd) {
+    ESP_LOGI(TAG, "Received command: %s", cmd);
+
+    if (strcmp(cmd, "PING") == 0) {
+        // flash green and respond
+        led_set_color(0, 32, 0);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        led_off();
+        uart_write_bytes(UART_NUM, "PONG\n", 5);
+
+    } else {
+        // flash red for unknown command
+        led_set_color(32, 0, 0);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        led_off();
+        uart_write_bytes(UART_NUM, "UNKNOWN_CMD\n", 12);
+    }
+}
+
+// ── UART TASK ─────────────────────────────────────────────────────────────────
+
+void uart_task(void *pvParameters) {
+    uint8_t buf[BUF_SIZE];
+    char    cmd[BUF_SIZE];
+    int     cmd_len = 0;
+
+    uart_write_bytes(UART_NUM, "Cerberus device ready\n", 22);
+    ESP_LOGI(TAG, "Cerberus device ready — waiting for commands");
 
     while (1) {
-        ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-        blink_led();
-        /* Toggle the LED state */
-        s_led_state = !s_led_state;
-        vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
+        int len = uart_read_bytes(UART_NUM, buf, sizeof(buf) - 1,
+                                  pdMS_TO_TICKS(20));
+        if (len > 0) {
+            for (int i = 0; i < len; i++) {
+                char c = (char)buf[i];
+                if (c == '\n' || c == '\r') {
+                    if (cmd_len > 0) {
+                        cmd[cmd_len] = '\0';
+                        process_command(cmd);
+                        cmd_len = 0;
+                    }
+                } else if (cmd_len < BUF_SIZE - 1) {
+                    cmd[cmd_len++] = c;
+                }
+            }
+        }
     }
+}
+
+// ── ENTRY POINT ───────────────────────────────────────────────────────────────
+
+void app_main(void) {
+    configure_led();
+    uart_init();
+
+    // blue on startup to show device is alive
+    led_set_color(0, 0, 32);
+    vTaskDelay(pdMS_TO_TICKS(500));
+    led_off();
+
+    xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
 }
