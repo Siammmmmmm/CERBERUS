@@ -19,7 +19,7 @@ public:
     ~MainWindow() override;
 
 private slots:
-    void on_pressButton_clicked();
+    void on_addBtn_clicked();
     void onDataReceived();
 
 private:

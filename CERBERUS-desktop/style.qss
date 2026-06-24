@@ -1,0 +1,485 @@
+/* ── GLOBAL ── */
+* {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    color: #dae1ef;
+    outline: none;
+}
+
+QMainWindow {
+    background: #08080f;
+}
+
+QWidget {
+    background: #08080f;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* ── SIDEBAR ── */
+QWidget#sidebar {
+    background: #080d18;
+    border-right: 1px solid #101828;
+}
+
+QWidget#logoArea {
+    background: #080d18;
+}
+
+QLabel#logoIcon {
+    background: #1447c0;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 7px;
+    padding: 4px;
+}
+
+QLabel#logoText {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    background: transparent;
+}
+
+/* ── DEVICE CARD ── */
+QFrame#deviceCard {
+    background: #0b1322;
+    border: 1px solid #101828;
+    border-radius: 11px;
+}
+
+QLabel#deviceStatus {
+    color: #aec3f0;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+}
+
+QLabel#deviceInfo {
+    color: #6a82a8;
+    font-size: 11px;
+    background: transparent;
+}
+
+/* ── NAV ── */
+QWidget#navArea {
+    background: #080d18;
+}
+
+QLabel#navLabel {
+    color: #4a6595;
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: transparent;
+    padding: 0px 10px 8px;
+}
+
+QPushButton#navBtnAll {
+    background: rgba(37, 99, 235, 0.12);
+    border-left: 2px solid #2563eb;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 8px;
+    color: #aec3f0;
+    font-weight: 500;
+    font-size: 13px;
+    text-align: left;
+    padding: 9px 10px 9px 12px;
+}
+
+QPushButton#navBtnFav,
+QPushButton#navBtnSet {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #5a73a0;
+    font-size: 13px;
+    text-align: left;
+    padding: 9px 10px 9px 12px;
+}
+
+QPushButton#navBtnFav:hover,
+QPushButton#navBtnSet:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: #8aa5cc;
+}
+
+/* ── LOCK AREA ── */
+QWidget#lockArea {
+    background: #080d18;
+}
+
+QPushButton#lockBtn {
+    background: rgba(240, 74, 65, 0.10);
+    border: 1px solid rgba(240, 74, 65, 0.45);
+    color: #ff9d97;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 500;
+    font-size: 12px;
+    text-align: center;
+}
+
+QPushButton#lockBtn:hover {
+    background: rgba(240, 74, 65, 0.20);
+    border-color: rgba(240, 74, 65, 0.65);
+    color: #ffb1ac;
+}
+
+QPushButton#lockBtn:pressed {
+    background: rgba(240, 74, 65, 0.28);
+}
+
+/* ── LIST COLUMN ── */
+QWidget#listCol {
+    background: #08080f;
+    border-right: 1px solid #101828;
+}
+
+QWidget#listTopBar {
+    background: #08080f;
+}
+
+QLineEdit#searchInput {
+    background: #0b1322;
+    border: 1px solid #14203a;
+    border-radius: 9px;
+    padding: 8px 12px;
+    color: #dae1ef;
+    font-size: 13px;
+    selection-background-color: #2563eb;
+}
+
+QLineEdit#searchInput:focus {
+    border-color: #2563eb;
+}
+
+QLineEdit#searchInput::placeholder {
+    color: #4a6595;
+}
+
+QLabel#allLoginsLabel {
+    color: #4a6595;
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: transparent;
+}
+
+QLabel#countLabel {
+    color: #5a73a0;
+    font-size: 12px;
+    background: transparent;
+}
+
+QListWidget#credentialList {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+}
+
+QListWidget#credentialList::item {
+    border-radius: 9px;
+    padding: 12px 14px;
+    border-left: 2px solid transparent;
+    color: #dae1ef;
+    min-height: 48px;
+}
+
+QListWidget#credentialList::item:selected {
+    background: rgba(37, 99, 235, 0.12);
+    border-left: 2px solid #2563eb;
+    color: #e6ecf6;
+}
+
+QListWidget#credentialList::item:hover:!selected {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+QPushButton#addBtn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+}
+
+QPushButton#addBtn:hover {
+    background: #1d50c4;
+}
+
+/* ── DETAIL COLUMN ── */
+QWidget#detailCol {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QStackedWidget#detailStack {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QStackedWidget#detailStack > QWidget {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QLabel#placeholderLabel {
+    color: #5a73a0;
+    font-size: 14px;
+    background: transparent;
+}
+
+QScrollArea#detailScrollArea {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QScrollArea#detailScrollArea > QWidget {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QScrollArea#detailScrollArea > QWidget > QWidget {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* ── DETAIL HEADER ── */
+QWidget#detailHeader {
+    background: transparent;
+}
+
+QWidget#headerTextArea {
+    background: transparent;
+}
+
+QLabel#detailSiteName {
+    color: #f5f8fd;
+    font-size: 19px;
+    font-weight: 600;
+    background: transparent;
+}
+
+QLabel#detailUrl {
+    color: #6f9bf2;
+    font-size: 13px;
+    background: transparent;
+}
+
+QPushButton#favBtnDetail {
+    background: transparent;
+    border: 1px solid #16203a;
+    border-radius: 9px;
+    color: #5a73a0;
+    font-size: 18px;
+    padding: 0px;
+}
+
+QPushButton#favBtnDetail:checked {
+    color: #42ff85;
+    border-color: rgba(66, 255, 133, 0.3);
+    background: rgba(66, 255, 133, 0.06);
+}
+
+QPushButton#favBtnDetail:hover {
+    background: rgba(66, 255, 133, 0.08);
+    border-color: rgba(66, 255, 133, 0.2);
+}
+
+/* ── FIELD SECTIONS ── */
+QWidget#emailSection,
+QWidget#passwordSection,
+QWidget#notesSection,
+QWidget#metaSection {
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QWidget#emailRow,
+QWidget#passwordRow {
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QLabel#emailFieldLabel,
+QLabel#passwordFieldLabel,
+QLabel#notesFieldLabel {
+    color: #5a73a0;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    background: transparent;
+}
+
+QLabel#detailEmailValue {
+    color: #e6ecf6;
+    font-size: 14px;
+    background: transparent;
+}
+
+QLabel#detailPasswordValue {
+    color: #2a4060;
+    font-size: 18px;
+    letter-spacing: 4px;
+    background: transparent;
+}
+
+/* ── FETCH AND COPY BUTTONS ── */
+QStackedWidget#passwordBtnStack {
+    background: transparent;
+    min-width: 0px;
+}
+
+QStackedWidget#passwordBtnStack > QWidget {
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QPushButton#fetchPasswordBtn,
+QPushButton#copyPasswordBtn {
+    min-width: 0px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-align: center;
+    padding: 9px 18px;
+    margin: 0px;
+    background: rgba(37, 99, 235, 0.14);
+    border: 1px solid rgba(37, 99, 235, 0.5);
+    color: #aec6fb;
+}
+
+QPushButton#fetchPasswordBtn:hover,
+QPushButton#copyPasswordBtn:hover {
+    background: rgba(37, 99, 235, 0.24);
+    border-color: rgba(37, 99, 235, 0.7);
+    color: #cfddfc;
+}
+
+QPushButton#fetchPasswordBtn:pressed,
+QPushButton#copyPasswordBtn:pressed {
+    background: rgba(37, 99, 235, 0.30);
+}
+
+QPushButton#fetchPasswordBtn:disabled {
+    background: #101828;
+    border-color: #101828;
+    color: #3a4f70;
+}
+
+/* ── COPY EMAIL BUTTON ── */
+QPushButton#copyEmailBtn {
+    background: transparent;
+    border: 1px solid #16203a;
+    color: #7089b0;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 12px;
+    text-align: center;
+}
+
+QPushButton#copyEmailBtn:hover {
+    border-color: #243250;
+    color: #aec3f0;
+}
+
+/* ── NOTES ── */
+QTextEdit#detailNotes {
+    background: #0b1322;
+    border: 1px solid #101828;
+    border-radius: 8px;
+    color: #a3b1cd;
+    font-size: 13px;
+    padding: 8px;
+}
+
+/* ── META LABELS ── */
+QLabel#detailModified,
+QLabel#detailAccessed,
+QLabel#detailCreated {
+    color: #5a73a0;
+    font-size: 12px;
+    background: transparent;
+}
+
+/* ── ACTION BAR ── */
+QWidget#actionBar {
+    background: #080d18;
+    border-top: 1px solid #101828;
+}
+
+QPushButton#editBtn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+QPushButton#editBtn:hover {
+    background: #1d50c4;
+}
+
+QPushButton#deleteBtn {
+    background: rgba(240, 74, 65, 0.12);
+    border: 1px solid rgba(240, 74, 65, 0.5);
+    color: #ff9d97;
+    border-radius: 9px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+QPushButton#deleteBtn:hover {
+    border-color: rgba(224, 85, 107, 0.5);
+    color: #e0556b;
+}
+
+/* ── LOCK OVERLAY ── */
+QWidget#lockOverlay {
+    background: rgba(5, 6, 13, 0.97);
+}
+
+QLabel#lockTitle {
+    color: #f5f8fd;
+    font-size: 20px;
+    font-weight: 600;
+    background: transparent;
+}
+
+QLabel#lockSubLabel {
+    color: #6a82a8;
+    font-size: 13px;
+    background: transparent;
+}
+
+QPushButton#unlockBtn {

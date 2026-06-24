@@ -14,6 +14,12 @@ qt_add_executable(CERBERUS-desktop
     Include/opCodes.h
 )
 
+qt_add_resources(CERBERUS-desktop "resources"
+    PREFIX "/"
+    FILES
+        style.qss
+)
+
 target_link_libraries(CERBERUS-desktop
     PRIVATE
         Qt::Core

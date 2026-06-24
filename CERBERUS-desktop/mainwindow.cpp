@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
-    connect(ui->pressButton, &QPushButton::clicked, this, &MainWindow::on_pressButton_clicked);
+    connect(ui->addBtn, &QPushButton::clicked, this, &MainWindow::on_addBtn_clicked);
 }
 
 void MainWindow::connectToDevice()
@@ -26,20 +26,20 @@ void MainWindow::connectToDevice()
     serial->setFlowControl(QSerialPort::NoFlowControl);
 
     if (serial->open(QIODevice::ReadWrite)) {
-        ui->statusLabel->setText("Device connected");
+        ui->deviceStatus->setText("Device connected");
     } else {
-        ui->statusLabel->setText("Failed: " + serial->errorString());
+        ui->deviceStatus->setText("Failed: " + serial->errorString());
     }
 }
 
-void MainWindow::on_pressButton_clicked()
+void MainWindow::on_addBtn_clicked()
 {
     if (!serial->isOpen()) {
-        ui->statusLabel->setText("Not connected");
+        ui->deviceStatus->setText("Not connected");
         return;
     }
     serial->write("PING\n");
-    ui->statusLabel->setText("Sent: PING");
+    ui->deviceStatus->setText("Sent: PING");
 }
 
 void MainWindow::onDataReceived()
@@ -48,9 +48,9 @@ void MainWindow::onDataReceived()
     QString response = QString::fromUtf8(data).trimmed();
 
     if (response == "PONG") {
-        ui->statusLabel->setText("Got: PONG - device is alive");
+        ui->deviceStatus->setText("Got: PONG - device is alive");
     } else {
-        ui->statusLabel->setText("Got: " + response);
+        ui->deviceStatus->setText("Got: " + response);
     }
 }
 
