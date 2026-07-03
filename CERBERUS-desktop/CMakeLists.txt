@@ -11,7 +11,7 @@ qt_add_executable(CERBERUS-desktop
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
-    Include/opCodes.h
+    ../Common/
 )
 
 qt_add_resources(CERBERUS-desktop "resources"

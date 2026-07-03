@@ -18,7 +18,7 @@ QWidget {
 }
 
 /* ── SIDEBAR ── */
-QWidget#sidebar {
+QWidget#sideBar {
     background: #080d18;
     border-right: 1px solid #101828;
 }
@@ -212,6 +212,61 @@ QPushButton#addBtn {
 
 QPushButton#addBtn:hover {
     background: #1d50c4;
+}
+
+/* ── SCROLLBAR (single complete definition) ── */
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 0px;
+    border: none;
+}
+
+QScrollBar::handle:vertical {
+    background: #1c2740;
+    border-radius: 4px;
+    border: 2px solid #08080f;
+    min-height: 28px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #2a3a5c;
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: #33456b;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    width: 0px;
+    background: none;
+    border: none;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+    border: none;
+    height: 0px;
+    width: 0px;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    height: 0px;
+}
+
+/* per-area border so the handle edge matches each background */
+QScrollArea#detailScrollArea QScrollBar::handle:vertical {
+    border: 2px solid #080d18;
 }
 
 /* ── DETAIL COLUMN ── */
@@ -483,3 +538,24 @@ QLabel#lockSubLabel {
 }
 
 QPushButton#unlockBtn {
+    background: #42ff85;
+    color: #05140a;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+QPushButton#unlockBtn:hover {
+    background: #36e575;
+}
+
+/* ── DIVIDERS ── */
+QFrame#dividerLine {
+    color: #101828;
+    background: #101828;
+    border: none;
+    max-height: 1px;
+}

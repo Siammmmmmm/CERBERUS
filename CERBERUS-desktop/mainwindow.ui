@@ -136,14 +136,14 @@
           <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop">
            <widget class="QLabel" name="deviceInfo">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;CERBERUS | USB-C&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;● Device connected&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
           <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
            <widget class="QLabel" name="deviceStatus">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;● Device connected&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;INCOMING STATUS&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -352,7 +352,77 @@
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="credentialList"/>
+        <widget class="QListWidget" name="credentialList">
+         <property name="dragEnabled">
+          <bool>false</bool>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>false</bool>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
+         </property>
+         <item>
+          <property name="text">
+           <string>GitHub</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Reddit</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Instagram</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Outlook</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Google</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>ChatGPT</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Claude</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Steam</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Discord</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Epic Games</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Spotify</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Qt</string>
+          </property>
+         </item>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -610,7 +680,7 @@
                         </sizepolicy>
                        </property>
                        <property name="text">
-                        <string>••••••••••••••••••••••</string>
+                        <string>•••••••••••••••••••</string>
                        </property>
                       </widget>
                      </item>
@@ -620,7 +690,7 @@
                   <item alignment="Qt::AlignmentFlag::AlignTop">
                    <widget class="QStackedWidget" name="passwordBtnStack">
                     <property name="currentIndex">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <widget class="QWidget" name="page">
                      <layout class="QVBoxLayout" name="verticalLayout_14">
