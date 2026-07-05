@@ -21,6 +21,26 @@ static const char *TAG = "CERBERUS";
 static uint8_t s_led_state = 0;
 static led_strip_handle_t led_strip;
 
+// ── SENDING ───────────────────────────────────────────────────────────────
+void crbrs_send_packet(uint8_t opcode, uint8_t len ,const uint8_t *payload){
+    uint8_t packet[MAX_PAYLOAD + 4] = {START_BYTE, opcode, len};
+    if(len>0 && payload != NULL){
+        for (size_t i = 0; i < len; i++)
+        {
+            packet[3+i] = payload[i];
+        }
+    }
+    packet[len+3] = CRC8(&packet[1], len+2);
+
+    for (size_t i = 0; i < len+4; i++)
+    {
+        ESP_LOGI(TAG,"0x%02X", packet[i]);
+    }
+    
+
+    uart_write_bytes(UART_NUM, packet, len + 4);
+}
+
 // ── LED ──────────────────────────────────────────────────────────────────────
 
 static void configure_led(void) {
@@ -122,6 +142,7 @@ void uart_task(void *pvParameters) {
             }
         }
     }
+
 }
 
 // ── ENTRY POINT ───────────────────────────────────────────────────────────────
@@ -132,14 +153,14 @@ void app_main(void) {
 
     // blue on startup to show device is alive
     led_set_color(0, 0, 32);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(150));
     led_off();
+
+    xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
 
     uint8_t ping[] = {0x01,0x00};
     uint8_t pong[] = {0x81,0x00};
-    ESP_LOGI(TAG,"PING CRC value: %02X , PONG CRC value: %02X ",
-        CRC8(ping,sizeof(ping)),CRC8(pong,sizeof(pong)));
+    ESP_LOGI(TAG,"REBUILD TEST 999 PING %02X, PONG CRC value: %02X ", CRC8(ping,sizeof(ping)),CRC8(pong,sizeof(pong)));
 
-
-    xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
+    crbrs_send_packet(RES_PONG, 0, NULL);
 }

@@ -7,11 +7,11 @@ static inline uint8_t CRC8(const uint8_t *data, int len){
     uint8_t crc = 0x00; 
     for (int i = 0; i < len; i++)
     {
-        crc ^= data[i];
+        crc ^= data[i]; //Gets byte at idx
         for (int x = 0; x < 8; x++)
         {
             if(crc & 0x80){
-                crc = (crc << 1) ^ 0x31;
+                crc = (crc << 1) ^ 0x31; //dallas/maxim poly
             }else{
                 crc = crc << 1;
             }
