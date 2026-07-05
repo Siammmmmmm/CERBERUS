@@ -1,0 +1,22 @@
+#include <stdint.h>
+#define START_BYTE 0xAA
+#define MAX_PAYLOAD 255
+
+//start byte NOT fed also answer is NOT reflected
+static inline uint8_t CRC8(const uint8_t *data, int len){
+    uint8_t crc = 0x00; 
+    for (int i = 0; i < len; i++)
+    {
+        crc ^= data[i];
+        for (int x = 0; x < 8; x++)
+        {
+            if(crc & 0x80){
+                crc = (crc << 1) ^ 0x31;
+            }else{
+                crc = crc << 1;
+            }
+        }
+        
+    }
+    return crc;
+}

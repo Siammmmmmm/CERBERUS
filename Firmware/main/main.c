@@ -8,6 +8,7 @@
 #include "led_strip.h"
 #include "sdkconfig.h"
 #include "opcodes.h"
+#include "protocol.h"
 
 static const char *TAG = "CERBERUS";
 
@@ -133,6 +134,12 @@ void app_main(void) {
     led_set_color(0, 0, 32);
     vTaskDelay(pdMS_TO_TICKS(500));
     led_off();
+
+    uint8_t ping[] = {0x01,0x00};
+    uint8_t pong[] = {0x81,0x00};
+    ESP_LOGI(TAG,"PING CRC value: %02X , PONG CRC value: %02X ",
+        CRC8(ping,sizeof(ping)),CRC8(pong,sizeof(pong)));
+
 
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
 }
