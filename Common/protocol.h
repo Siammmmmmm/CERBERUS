@@ -1,9 +1,10 @@
 #include <stdint.h>
 #define START_BYTE 0xAA
 #define MAX_PAYLOAD 255
+#define MAX_BUFFER MAX_PAYLOAD+4
 
 //start byte NOT fed also answer is NOT reflected
-static inline uint8_t CRC8(const uint8_t *data, int len){
+static inline uint8_t crbrs_CRC8(const uint8_t *data, int len){
     uint8_t crc = 0x00; 
     for (int i = 0; i < len; i++)
     {
