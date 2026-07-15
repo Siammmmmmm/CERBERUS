@@ -20,6 +20,12 @@ qt_add_resources(CERBERUS-desktop "resources"
         style.qss
 )
 
+target_include_directories(CERBERUS-desktop
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Common
+)
+
+
 target_link_libraries(CERBERUS-desktop
     PRIVATE
         Qt::Core

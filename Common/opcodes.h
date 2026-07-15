@@ -10,9 +10,21 @@
 #define CMD_LOCK          0x07
 
 #define RES_PONG          0x81
-#define RES_OK            0x82
-#define RES_NACK          0x83
-#define RES_METADATA      0x84
-#define RES_PASSWORD      0x85
+#define RES_METADATA      0x83
+#define RES_PASSWORD      0x84
+
+#define RES_OK            0x8E
+#define RES_NACK          0x8F
+
+typedef enum {
+    NACK_UNKNOWN_OPCODE = 0x00,
+    NACK_DEVICE_LOCKED,        // auto-numbers to 0x01
+    NACK_BAD_SLOT_IDX,
+    NACK_DECRYPT_FAILURE,
+    NACK_STORAGE_ERROR,
+    NACK_DEVICE_DISCONNECTED
+} nack_reason;
+
+#define EVT_LOG           0xC0 //log event for any 
 
 #endif // OPCODES_H

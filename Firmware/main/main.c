@@ -9,6 +9,7 @@
 #include "sdkconfig.h"
 #include "opcodes.h"
 #include "protocol.h"
+#include "transport.h"
 
 static const char *TAG = "CERBERUS";
 
@@ -20,11 +21,6 @@ static const char *TAG = "CERBERUS";
 
 static uint8_t s_led_state = 0;
 static led_strip_handle_t led_strip;
-
-typedef struct{
-    uint8_t buffer[MAX_BUFFER];
-    size_t buf_len;
-} frame_parser;
 
 // ── LED
 
@@ -64,37 +60,12 @@ static void led_off(void) {
 
 
 // ── PACKETS
-
-void discard_n(frame_parser *fp, size_t n){
-    if(n > fp->buf_len){
-        fp->buf_len = 0;
-        return;
-    }
-    
-    //shift up the buffer n spaces
-    memmove(&fp->buffer[0], &fp->buffer[n], fp->buf_len - n);
-    fp->buf_len = fp->buf_len - n;
-}
-
-void crbrs_send_packet(uint8_t opcode, uint8_t len ,const uint8_t *payload){
-    uint8_t packet[MAX_BUFFER] = {START_BYTE, opcode, len};
-    if(len>0 && payload != NULL){
-        for (size_t i = 0; i < len; i++)
-        {
-            packet[3+i] = payload[i]; //copy payload into packet
-        }
-    }
-    packet[len+3] = crbrs_CRC8(&packet[1], len+2);
-
-    uart_write_bytes(UART_NUM, packet, len + 4);
-}
-
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
 
     switch (opcode)
     {
     case CMD_PING:
-        ESP_LOGI(TAG, "recieved opcode: 0x%02X", opcode);
+        ESP_LOGI(TAG, "received opcode: 0x%02X", opcode);
         crbrs_send_packet(RES_PONG, 0, NULL);
 
         //flash green
@@ -114,54 +85,6 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
         break;
     }
 
-}
-
-void crbrs_parse_frame(frame_parser *fp, const uint8_t *data, size_t len){
-    if(((fp->buf_len) + len) > MAX_BUFFER ){
-        fp->buf_len = 0; //reset len idx
-    }
-    
-    for (size_t i = 0; i < len; i++) //copy data into buffer
-    {
-        fp->buffer[(fp->buf_len) + i] = data[i];
-    }
-    fp->buf_len = (fp->buf_len) + len;
-    
-    while(true){
-        bool none = true;
-        
-        if(fp->buffer[0] != START_BYTE){ //resync
-            for (size_t i = 0; i < fp->buf_len; i++)
-            {
-                if(fp->buffer[i] == START_BYTE){
-                    discard_n(fp, i);
-                    none = false; 
-                    break;
-                }
-            }
-            if(none){ //flag if no start bytes at all
-                fp->buf_len = 0;
-                break;
-            }
-        }
-
-        if(fp->buf_len < 3){
-            break;
-        }
-        
-        uint8_t frame_len = fp->buffer[2];
-        if(fp->buf_len < frame_len + 4){
-            break;
-        }
-
-        uint8_t check = crbrs_CRC8(&(fp->buffer[1]), frame_len + 2);
-        if(fp->buffer[frame_len + 3] == check){
-            crbrs_dispatch(fp->buffer[1], frame_len, &fp->buffer[3]);
-            discard_n(fp, frame_len + 4); //go to next frame
-        }else{
-            discard_n(fp, 1); //delete consecutive START_BYTES
-        }
-    }
 }
 
 // ── UART
@@ -194,7 +117,7 @@ void uart_task(void *pvParameters) {
                                   pdMS_TO_TICKS(20));
         if (len>0)
         {
-            crbrs_parse_frame(&fp, buf, len);
+            crbrs_parse_frame(&fp, buf, len, crbrs_dispatch);
         }
     }
 }

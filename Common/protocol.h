@@ -1,3 +1,7 @@
+// protocol.h
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
+
 #include <stdint.h>
 #define START_BYTE 0xAA
 #define MAX_PAYLOAD 255
@@ -21,3 +25,5 @@ static inline uint8_t crbrs_CRC8(const uint8_t *data, int len){
     }
     return crc;
 }
+
+#endif
