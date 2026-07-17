@@ -11,7 +11,9 @@ qt_add_executable(CERBERUS-desktop
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
-    ../Common/
+
+    cerberusprotocol.h
+    cerberusprotocol.cpp
 )
 
 qt_add_resources(CERBERUS-desktop "resources"
@@ -23,6 +25,8 @@ qt_add_resources(CERBERUS-desktop "resources"
 target_include_directories(CERBERUS-desktop
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../Common
+        ${CMAKE_CURRENT_SOURCE_DIR}/Include
+
 )
 
 

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSerialPort>
+#include "cerberusprotocol.h"
 #include <cstdint>
 #include <vector>
 
@@ -23,15 +24,13 @@ public:
 private slots:
     void on_addBtn_clicked();
     void onDataReceived();
+    void handleFrame(uint8_t opcode, QByteArray payload);
 
 private:
     Ui::MainWindow *ui;
     QSerialPort *serial;
-    std::vector<uint8_t> buffer;
+    CerberusProtocol *protocol;
     void connectToDevice();
-    bool send_packet(uint8_t opcode, const std::vector<uint8_t> &payload);
-    void parse_frame(std::vector<uint8_t> &buffer);
-    void discard_n(std::vector<uint8_t> &buffer, size_t n);
-    void dispatch(uint8_t opcode, const std::vector<uint8_t> &payload);
 };
+
 #endif // MAINWINDOW_H
