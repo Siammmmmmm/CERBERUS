@@ -21,6 +21,18 @@ static const char *TAG = "CERBERUS";
 
 static uint8_t s_led_state = 0;
 static led_strip_handle_t led_strip;
+typedef struct
+{
+    uint16_t slot_idx;
+    uint16_t time_accessed;
+    uint16_t time_modified;
+    uint16_t time_created;
+    uint8_t flags;
+    char site[CAP_SITE+1];
+    char url[CAP_URL+1];
+    char email[CAP_EMAIL+1];
+    char notes[CAP_NOTES+1];
+} credential;
 
 // ── LED
 
@@ -60,6 +72,53 @@ static void led_off(void) {
 
 
 // ── PACKETS
+
+static inline size_t crbrs_encode_bits(uint8_t buf[MAX_PAYLOAD], size_t pos, uint16_t block){
+    buf[pos++] = block & 0xFF;
+    buf[pos++] = block >> 8;
+    return pos;
+}
+
+static inline size_t crbrs_encode_char(uint8_t buf[MAX_PAYLOAD], size_t pos, const char *text, const size_t cap){
+    size_t len = strlen(text);
+    if(len > cap){
+        return 0;
+    }
+    buf[pos++] = len;
+    memcpy(&buf[pos], text, len);
+    pos += len;
+    return pos;
+}
+
+static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf[MAX_PAYLOAD], size_t buf_len){
+    size_t pos = 0;
+    if(buf_len < MAX_PAYLOAD) return 0;
+
+    pos = crbrs_encode_bits(buf, pos, metadata->slot_idx);
+    pos = crbrs_encode_bits(buf, pos, metadata->time_accessed);
+    pos = crbrs_encode_bits(buf, pos, metadata->time_modified);
+    pos = crbrs_encode_bits(buf, pos, metadata->time_created);
+    buf[pos++] = metadata->flags; //pos = 8
+
+    if(pos+1+CAP_SITE > buf_len) return 0;
+    pos = crbrs_encode_char(buf, pos, metadata->site, CAP_SITE);
+    if(pos == 0) return 0;
+
+    if(pos+1+CAP_URL > buf_len) return 0;
+    pos = crbrs_encode_char(buf, pos, metadata->url, CAP_URL);
+    if(pos == 0) return 0;
+
+    if(pos+1+CAP_EMAIL > buf_len) return 0;
+    pos = crbrs_encode_char(buf, pos, metadata->email, CAP_EMAIL);
+    if(pos == 0) return 0;
+
+    if(pos+1+CAP_NOTES > buf_len) return 0;
+    pos = crbrs_encode_char(buf, pos, metadata->notes, CAP_NOTES);
+    if(pos == 0) return 0;
+
+    return pos;
+}  
+
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
 
     switch (opcode)
@@ -132,6 +191,11 @@ void app_main(void) {
     led_set_color(0, 0, 32);
     vTaskDelay(pdMS_TO_TICKS(150));
     led_off();
+
+    credential metadata1 = {0,0, 754, 753, 752 ,"github", "github.com", "example@gmail.com", "notes3"};
+    credential metadata2 = {0,0, 744, 743, 742 ,"google", "google.com", "example@gmail.com", "notes2"};
+    credential metadata3 = {0,1, 722, 721, 72 ,"claude", "claude.ai", "example@outlook.com", "notes1"};
+    //payload == 51
 
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
 }

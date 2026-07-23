@@ -1,5 +1,7 @@
 #ifndef OPCODES_H
 #define OPCODES_H
+//METADATA: slot_idx[0-1]; accessed[2-3]; modified[4-5]; created[6-7];
+//flags[8]; len[9] site; len url; len email; notes;
 
 #define CMD_PING          0x01
 #define CMD_UNLOCK        0x02
@@ -12,6 +14,7 @@
 #define RES_PONG          0x81
 #define RES_METADATA      0x83
 #define RES_PASSWORD      0x84
+#define RES_METADATA_END  0x89
 
 #define RES_OK            0x8E
 #define RES_NACK          0x8F
