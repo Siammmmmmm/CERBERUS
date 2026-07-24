@@ -21,7 +21,7 @@
 
 typedef enum {
     NACK_UNKNOWN_OPCODE = 0x00,
-    NACK_DEVICE_LOCKED,        // auto-numbers to 0x01
+    NACK_DEVICE_LOCKED,        // auto numbers to 0x01
     NACK_BAD_SLOT_IDX,
     NACK_DECRYPT_FAILURE,
     NACK_STORAGE_ERROR,

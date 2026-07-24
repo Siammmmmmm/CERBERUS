@@ -48,7 +48,7 @@ void MainWindow::on_addBtn_clicked()
         return;
     }
     std::vector<uint8_t> payload = {};
-    protocol->sendCommand(CMD_PING, payload);
+    protocol->sendCommand(CMD_UNLOCK, payload);
     ui->deviceStatus->setText("Sent: PING");
 }
 
@@ -62,6 +62,14 @@ void MainWindow::handleFrame(uint8_t opcode, QByteArray payload)
     switch (opcode) {
     case RES_PONG:
         ui->deviceStatus->setText("Received: PONG");
+        break;
+
+    case RES_METADATA:
+        qDebug() << "payload: " << payload.toHex(' ');
+        qDebug() << "Payload Size: " << payload.size();
+
+    case RES_METADATA_END:
+        ui->deviceStatus->setText("Received: METADATA");
         break;
 
     default:

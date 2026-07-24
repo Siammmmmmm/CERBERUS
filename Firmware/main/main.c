@@ -119,7 +119,11 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
     return pos;
 }  
 
+    //payload == 52, 52, 53
+    static const credential meta[] = {{0, 754, 753, 752, 0,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 0,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 1,"claude", "claude.ai", "example@outlook.com", "notes1"}};
+
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
+
 
     switch (opcode)
     {
@@ -133,6 +137,21 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
         led_off();
         break;
 
+    case CMD_UNLOCK:
+        {
+        uint8_t buf[MAX_PAYLOAD];
+        for (size_t i = 0; i < (sizeof(meta)/sizeof(meta[0])); i++)
+        {
+            size_t pos = crbrs_pack_metadata(&meta[i] ,buf , sizeof(buf));
+            if( pos == 0){
+                ESP_LOGW(TAG, "INVALID record at slot: %d", meta[i].slot_idx);
+                continue;
+            }
+            crbrs_send_packet(RES_METADATA, (uint8_t) pos, buf);
+        }
+        crbrs_send_packet(RES_METADATA_END, 0 , NULL);
+        break;
+        }
     default:
         ESP_LOGI(TAG, "unrecognized opcode: %02X", opcode);
         crbrs_send_packet(RES_NACK, 0, NULL);
@@ -192,10 +211,7 @@ void app_main(void) {
     vTaskDelay(pdMS_TO_TICKS(150));
     led_off();
 
-    credential metadata1 = {0,0, 754, 753, 752 ,"github", "github.com", "example@gmail.com", "notes3"};
-    credential metadata2 = {0,0, 744, 743, 742 ,"google", "google.com", "example@gmail.com", "notes2"};
-    credential metadata3 = {0,1, 722, 721, 72 ,"claude", "claude.ai", "example@outlook.com", "notes1"};
-    //payload == 51
+
 
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);
 }
