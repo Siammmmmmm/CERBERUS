@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     protocol = new CerberusProtocol(this);
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
+    connect(protocol, &CerberusProtocol::metadataReceived, this, &MainWindow::onMetadataReceived);
+    connect(protocol, &CerberusProtocol::metadataComplete, this, &MainWindow::onMetadataComplete);
     connect(protocol, &CerberusProtocol::frameReceived, this, &MainWindow::handleFrame);
     connect(protocol, &CerberusProtocol::bytesToSend, this, [this](QByteArray b) {
         serial->write(b);
@@ -57,19 +59,21 @@ void MainWindow::onDataReceived()
     protocol->feedBytes(serial->readAll());
 }
 
+void MainWindow::onMetadataReceived(credential metadata)
+{
+    qDebug() << metadata.slot_idx << metadata.site << metadata.time_created;
+}
+
+void MainWindow::onMetadataComplete()
+{
+    ui->deviceStatus->setText("METADATA: COMPLETED");
+}
+
 void MainWindow::handleFrame(uint8_t opcode, QByteArray payload)
 {
     switch (opcode) {
     case RES_PONG:
         ui->deviceStatus->setText("Received: PONG");
-        break;
-
-    case RES_METADATA:
-        qDebug() << "payload: " << payload.toHex(' ');
-        qDebug() << "Payload Size: " << payload.size();
-
-    case RES_METADATA_END:
-        ui->deviceStatus->setText("Received: METADATA");
         break;
 
     default:

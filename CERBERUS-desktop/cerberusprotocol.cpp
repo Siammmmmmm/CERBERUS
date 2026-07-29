@@ -4,6 +4,74 @@ CerberusProtocol::CerberusProtocol(QObject *parent)
     : QObject(parent)
 {}
 
+quint16 CerberusProtocol::readU16(const QByteArray &payload, size_t &pos)
+{
+    quint8 high = static_cast<quint8>(payload.at(pos + 1)) & 0xFF;
+    quint16 block = (static_cast<quint8>(payload.at(pos)) | (high << 8));
+    pos += 2;
+    return block;
+}
+
+QDate CerberusProtocol::decode_date(quint16 block)
+{
+    return QDate((block >> 9) + 2025, (block >> 5) & 0x0F, block & 0x1F);
+}
+
+QString CerberusProtocol::decode_char(size_t &pos,
+                                      const QByteArray &payload,
+                                      const size_t cap,
+                                      bool &ok)
+{
+    size_t len = static_cast<quint8>(payload.at(pos));
+    QString info;
+    pos++;
+    if ((len > cap) || ((pos + len) > payload.size())) {
+        ok = false;
+    } else {
+        info = QString::fromUtf8(payload.constData() + pos, len);
+        pos += len;
+    }
+    return info;
+};
+
+bool CerberusProtocol::unpack_metadata(const QByteArray &payload, credential &metadata)
+{
+    size_t pos = 0;
+    bool ok = true;
+
+    if (payload.size() < 9) {
+        return false;
+    }
+
+    metadata.slot_idx = readU16(payload, pos);
+
+    metadata.time_accessed = decode_date(readU16(payload, pos));
+    metadata.time_modified = decode_date(readU16(payload, pos));
+    metadata.time_created = decode_date(readU16(payload, pos));
+
+    metadata.flags = static_cast<quint8>(payload.at(pos));
+    pos++;
+
+    metadata.site = decode_char(pos, payload, CAP_SITE, ok);
+    if (!ok) {
+        return false;
+    }
+    metadata.url = decode_char(pos, payload, CAP_URL, ok);
+    if (!ok) {
+        return false;
+    }
+    metadata.email = decode_char(pos, payload, CAP_EMAIL, ok);
+    if (!ok) {
+        return false;
+    }
+    metadata.notes = decode_char(pos, payload, CAP_NOTES, ok);
+    if (pos != payload.size() || !ok) {
+        return false;
+    }
+
+    return true;
+};
+
 void CerberusProtocol::feedBytes(const QByteArray &data)
 {
     const uint8_t *ptr = reinterpret_cast<const uint8_t *>(data.constData());
@@ -31,13 +99,17 @@ void CerberusProtocol::parse_frame()
     }
 
     while (true) {
-        auto it = std::find(buffer.begin(), buffer.end(), START_BYTE);
+        if (buffer.empty()) {
+            break;
+        }
 
         // Check if element is present
-        if (it == buffer.end()) {
-            buffer.clear();
-            break;
-        } else if (buffer.at(0) != START_BYTE) {
+        if (buffer.at(0) != START_BYTE) {
+            auto it = std::find(buffer.begin(), buffer.end(), START_BYTE);
+            if (it == buffer.end()) {
+                buffer.clear();
+                break;
+            }
             discard_n(std::distance(buffer.begin(), it));
         }
 
@@ -46,14 +118,34 @@ void CerberusProtocol::parse_frame()
         }
 
         uint8_t frame_len = buffer.at(2);
-        if (buffer.size() < frame_len + 4) {
+        if (buffer.size() < frame_len + 4) { //frame_len is int
             break;
         }
 
         uint8_t check = crbrs_CRC8(&buffer.at(1), frame_len + 2);
         if (buffer.at(frame_len + 3) == check) {
             QByteArray payload(reinterpret_cast<const char *>(buffer.data() + 3), frame_len);
-            emit frameReceived(buffer.at(1), payload);
+            uint8_t opcode = buffer.at(1);
+            switch (opcode) {
+            case RES_METADATA: {
+                credential metadata;
+                if (CerberusProtocol::unpack_metadata(payload, metadata)) {
+                    emit metadataReceived(metadata);
+                } else {
+                    emit protocolError();
+                }
+                break;
+            }
+
+            case RES_METADATA_END:
+                emit metadataComplete();
+                break;
+
+            default:
+                emit frameReceived(opcode, payload);
+
+                break;
+            }
             discard_n(frame_len + 4); //discard this frame
         } else {
             discard_n(1); //discard extra START_BYTE

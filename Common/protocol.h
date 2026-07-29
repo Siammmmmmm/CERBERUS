@@ -10,6 +10,8 @@
 #define CAP_URL 96
 #define CAP_EMAIL 64
 #define CAP_NOTES 50
+#define FLAG_OCCUPIED 0x1
+#define FLAG_FAVORITE 0x2
 
 //start byte NOT fed also answer is NOT reflected
 static inline uint8_t crbrs_CRC8(const uint8_t *data, int len){

@@ -24,6 +24,8 @@ public:
 private slots:
     void on_addBtn_clicked();
     void onDataReceived();
+    void onMetadataReceived(credential metadata);
+    void onMetadataComplete();
     void handleFrame(uint8_t opcode, QByteArray payload);
 
 private:
