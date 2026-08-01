@@ -2,6 +2,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "cryptoauthlib.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_log.h"
@@ -120,7 +121,7 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
 }  
 
     //payload == 52, 52, 53
-    static const credential meta[] = {{0, 754, 753, 752, 0,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 0,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 1,"claude", "claude.ai", "example@outlook.com", "notes1"}};
+    static const credential meta[] = {{0, 754, 753, 752, 0,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 0,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 2,"claude", "claude.ai", "example@outlook.com", "notes1"}};
 
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
 
@@ -205,12 +206,12 @@ void uart_task(void *pvParameters) {
 void app_main(void) {
     configure_led();
     uart_init();
+    atcab_init(&cfg_ateccx08a_i2c_default);
 
     // blue on startup to show device is alive
     led_set_color(0, 0, 32);
     vTaskDelay(pdMS_TO_TICKS(150));
     led_off();
-
 
 
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 5, NULL);

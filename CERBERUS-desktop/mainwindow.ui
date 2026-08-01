@@ -352,76 +352,28 @@
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="credentialList">
+        <widget class="QTableView" name="credentialList">
+         <property name="editTriggers">
+          <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+         </property>
          <property name="dragEnabled">
           <bool>false</bool>
          </property>
          <property name="alternatingRowColors">
           <bool>false</bool>
          </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
          </property>
-         <item>
-          <property name="text">
-           <string>GitHub</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Reddit</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Instagram</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Outlook</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Google</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>ChatGPT</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Claude</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Steam</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Discord</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Epic Games</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Spotify</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Qt</string>
-          </property>
-         </item>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>false</bool>
+         </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
       </layout>

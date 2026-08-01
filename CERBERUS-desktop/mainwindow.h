@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSerialPort>
 #include "cerberusprotocol.h"
+#include "credentialmodel.h"
 #include <cstdint>
 #include <vector>
 
@@ -32,6 +33,7 @@ private:
     Ui::MainWindow *ui;
     QSerialPort *serial;
     CerberusProtocol *protocol;
+    CredentialModel *model;
     void connectToDevice();
 };
 

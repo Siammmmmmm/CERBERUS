@@ -14,8 +14,8 @@
 #define RES_PONG          0x81
 #define RES_METADATA      0x83
 #define RES_PASSWORD      0x84
-#define RES_METADATA_END  0x89
 
+#define RES_METADATA_END  0x8D
 #define RES_OK            0x8E
 #define RES_NACK          0x8F
 

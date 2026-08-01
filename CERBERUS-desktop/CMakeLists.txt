@@ -14,6 +14,9 @@ qt_add_executable(CERBERUS-desktop
 
     cerberusprotocol.h
     cerberusprotocol.cpp
+
+    Include/credential.h
+    credentialmodel.h credentialmodel.cpp
 )
 
 qt_add_resources(CERBERUS-desktop "resources"

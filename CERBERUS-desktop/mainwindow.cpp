@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     protocol = new CerberusProtocol(this);
+    model = new CredentialModel(this);
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
     connect(protocol, &CerberusProtocol::metadataReceived, this, &MainWindow::onMetadataReceived);
@@ -25,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(protocol, &CerberusProtocol::protocolError, this, [this] {
         ui->deviceStatus->setText("Protocol error");
     });
+    ui->credentialList->setModel(model);
 }
 
 void MainWindow::connectToDevice()
@@ -61,7 +63,8 @@ void MainWindow::onDataReceived()
 
 void MainWindow::onMetadataReceived(credential metadata)
 {
-    qDebug() << metadata.slot_idx << metadata.site << metadata.time_created;
+    model->append(metadata);
+    ui->countLabel->setText(QString::number(model->rowCount()));
 }
 
 void MainWindow::onMetadataComplete()

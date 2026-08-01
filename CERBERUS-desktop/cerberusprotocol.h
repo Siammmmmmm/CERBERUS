@@ -3,24 +3,12 @@
 
 #include <QByteArray>
 #include <QObject>
+#include "credential.h"
 #include "opcodes.h"
 #include "protocol.h"
 #include <cstdint>
 #include <qdatetime.h>
 #include <vector>
-
-struct credential
-{
-    quint16 slot_idx;
-    QDate time_accessed;
-    QDate time_modified;
-    QDate time_created;
-    quint8 flags;
-    QString site;
-    QString url;
-    QString email;
-    QString notes;
-};
 
 class CerberusProtocol : public QObject
 {
