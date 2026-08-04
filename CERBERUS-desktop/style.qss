@@ -175,30 +175,59 @@ QLabel#countLabel {
     background: transparent;
 }
 
-QListWidget#credentialList {
+/* ── CREDENTIAL TABLE ── */
+QTableView#credentialList {
     background: transparent;
     border: none;
-    padding: 4px 8px;
+    gridline-color: transparent;
+    selection-background-color: transparent;
+    selection-color: #e6ecf6;
 }
 
-QListWidget#credentialList::item {
-    border-radius: 9px;
-    padding: 12px 14px;
-    border-left: 2px solid transparent;
-    color: #dae1ef;
-    min-height: 48px;
+QTableView#credentialList::item {
+    padding: 4px 12px;
+    font-size: 15px;
+    border: none;
 }
 
-QListWidget#credentialList::item:selected {
+QTableView#credentialList::item:selected {
     background: rgba(37, 99, 235, 0.12);
-    border-left: 2px solid #2563eb;
     color: #e6ecf6;
 }
 
-QListWidget#credentialList::item:hover:!selected {
+QTableView#credentialList::item:hover:!selected {
     background: rgba(255, 255, 255, 0.025);
 }
 
+QHeaderView {
+    background: transparent;
+    border: none;
+}
+
+QHeaderView::section {
+    background: #08080f;
+    color: #4a6595;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 1px solid #101828;
+}
+
+QHeaderView::section:hover {
+    color: #6a82a8;
+}
+
+QTableCornerButton::section {
+    background: #08080f;
+    border: none;
+}
+QTableView#credentialList::item:focus {
+    border: none;
+    outline: none;
+}
 QPushButton#addBtn {
     background: #2563eb;
     color: white;

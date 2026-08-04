@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include <QDebug>
+#include <QHeaderView>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QtWidgets>
@@ -27,6 +28,12 @@ MainWindow::MainWindow(QWidget *parent)
         ui->deviceStatus->setText("Protocol error");
     });
     ui->credentialList->setModel(model);
+    QHeaderView *header = ui->credentialList->horizontalHeader();
+    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Fav, QHeaderView::Fixed);
+    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Site, QHeaderView::Stretch);
+    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Accessed,
+                                              QHeaderView::ResizeToContents);
+    header->resizeSection(CredentialModel::Col_Fav, 32);
 }
 
 void MainWindow::connectToDevice()
@@ -52,6 +59,7 @@ void MainWindow::on_addBtn_clicked()
         return;
     }
     std::vector<uint8_t> payload = {};
+    model->clear();
     protocol->sendCommand(CMD_UNLOCK, payload);
     ui->deviceStatus->setText("Sent: PING");
 }

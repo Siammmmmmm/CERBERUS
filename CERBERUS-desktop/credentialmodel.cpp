@@ -1,4 +1,6 @@
 #include "credentialmodel.h"
+#include <qcolor.h>
+#include <qfont.h>
 
 CredentialModel::CredentialModel(QObject *parent)
     : QAbstractTableModel(parent)
@@ -43,23 +45,7 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
         return QVariant{};
     }
     const credential &c = m_cred.at(index.row());
-
-    if (role == Qt::DisplayRole) {
-        switch (index.column()) {
-        case Col_Fav:
-            if ((c.flags & FLAG_FAVORITE) != 0) { //check bit 2
-                return QString{"★"};
-            } else {
-                return QString{"☆"};
-            }
-        case Col_Site:
-            return c.site;
-        case Col_Accessed:
-            return c.time_accessed.toString("MMM d");
-        default:
-            return QVariant{};
-        }
-    }
+    const bool fav = (c.flags & FLAG_FAVORITE) != 0;
 
     switch (role) {
     case SlotIdxRole:
@@ -80,6 +66,64 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
         return c.email;
     case NotesRole:
         return c.notes;
+    case Qt::DisplayRole: {
+        switch (index.column()) {
+        case Col_Fav:
+            if (fav) { //check bit 2
+                return QString{"★"};
+            } else {
+                return QString{"☆"};
+            }
+        case Col_Site:
+            return c.site;
+        case Col_Accessed:
+            return c.time_accessed.toString("MMM dd");
+        default:
+            return QVariant{};
+        }
+    }
+    case Qt::ForegroundRole:
+        switch (index.column()) {
+        case Col_Fav: {
+            if (fav) { //check bit 2
+                return QColor("#42ff85");
+            } else {
+                return QColor("#5a73a0");
+            }
+        }
+        case Col_Site:
+            return QColor("#5a73a0");
+        case Col_Accessed:
+            return QColor("#5a73a0");
+
+        default:
+            return QVariant{};
+        }
+    case Qt::FontRole:
+        switch (index.column()) {
+        case Col_Fav: {
+            QFont f;
+            f.setPixelSize(24);
+            return f;
+        }
+        case Col_Site: {
+            QFont s;
+            s.setPixelSize(20);
+            return s;
+        }
+        default:
+            return QVariant{};
+        }
+    case Qt::TextAlignmentRole:
+        switch (index.column()) {
+        case Col_Fav:
+            return static_cast<int>(Qt::AlignCenter);
+
+        case Col_Accessed:
+            return static_cast<int>(Qt::AlignRight | Qt::AlignVCenter);
+        default:
+            return QVariant{};
+        }
     }
 
     return QVariant{};

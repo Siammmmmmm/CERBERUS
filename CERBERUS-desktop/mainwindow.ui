@@ -371,7 +371,19 @@
          <property name="sortingEnabled">
           <bool>false</bool>
          </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
          <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>48</number>
+         </attribute>
+         <attribute name="verticalHeaderHighlightSections">
           <bool>false</bool>
          </attribute>
         </widget>
