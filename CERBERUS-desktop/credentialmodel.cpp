@@ -24,18 +24,35 @@ int CredentialModel::columnCount(const QModelIndex &parent) const
 
 QVariant CredentialModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole || orientation != Qt::Horizontal) {
+    if (orientation != Qt::Horizontal) {
         return QVariant{};
     }
 
-    switch (section) {
-    case Col_Fav:
-        return QString{};
-    case Col_Site:
-        return QString{"Site"};
-    case Col_Accessed:
-        return QString{"Last Accessed"};
+    switch (role) {
+    case Qt::TextAlignmentRole:
+        switch (section) {
+        case Col_Fav:
+            return static_cast<int>(Qt::AlignCenter);
+
+        case Col_Accessed:
+            return static_cast<int>(Qt::AlignRight | Qt::AlignVCenter);
+        default:
+            return QVariant{};
+        }
+    case Qt::DisplayRole:
+        switch (section) {
+        case Col_Fav:
+            return QString{"★"};
+        case Col_Site:
+            return QString{"Site"};
+        case Col_Accessed:
+            return QString{"Last Accessed"};
+
+        default:
+            return QVariant{};
+        }
     }
+
     return QVariant{};
 }
 
@@ -77,7 +94,7 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
         case Col_Site:
             return c.site;
         case Col_Accessed:
-            return c.time_accessed.toString("MMM dd");
+            return c.time_accessed.toString("MMM d, yyyy");
         default:
             return QVariant{};
         }

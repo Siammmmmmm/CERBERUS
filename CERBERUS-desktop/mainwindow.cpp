@@ -8,6 +8,12 @@
 #include "protocol.h"
 #include "ui_mainwindow.h"
 
+CustomSort::CustomSort(QObject *parent)
+    : QSortFilterProxyModel(parent)
+{}
+
+CustomSort::~CustomSort() {}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -16,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     protocol = new CerberusProtocol(this);
     model = new CredentialModel(this);
+    proxy = new CustomSort(this);
+
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
     connect(protocol, &CerberusProtocol::metadataReceived, this, &MainWindow::onMetadataReceived);
@@ -27,13 +35,43 @@ MainWindow::MainWindow(QWidget *parent)
     connect(protocol, &CerberusProtocol::protocolError, this, [this] {
         ui->deviceStatus->setText("Protocol error");
     });
-    ui->credentialList->setModel(model);
+
+    proxy->setSourceModel(model);
+    ui->credentialList->setModel(proxy);
+    ui->credentialList->setSortingEnabled(true);
     QHeaderView *header = ui->credentialList->horizontalHeader();
-    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Fav, QHeaderView::Fixed);
-    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Site, QHeaderView::Stretch);
-    header->QHeaderView::setSectionResizeMode(CredentialModel::Col_Accessed,
-                                              QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(CredentialModel::Col_Fav, QHeaderView::Fixed);
+    header->setSectionResizeMode(CredentialModel::Col_Site, QHeaderView::Stretch);
+    header->setSectionResizeMode(CredentialModel::Col_Accessed, QHeaderView::ResizeToContents);
     header->resizeSection(CredentialModel::Col_Fav, 32);
+    proxy->setFilterKeyColumn(CredentialModel::Col_Site);
+    proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    connect(ui->searchInput, &QLineEdit::textChanged, this, [this](const QString &text) {
+        proxy->setFilterFixedString(text);
+    });
+}
+
+bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) const
+{
+    switch (left.column()) {
+    case (CredentialModel::Col_Fav):
+        return (
+            ((sourceModel()->data(left, CredentialModel::FlagsRole).toInt() & FLAG_FAVORITE) != 0)
+            < ((sourceModel()->data(right, CredentialModel::FlagsRole).toInt() & FLAG_FAVORITE)
+               != 0));
+    case (CredentialModel::Col_Site):
+        return (QString::compare(sourceModel()->data(left).toString(),
+                                 sourceModel()->data(right).toString(),
+                                 Qt::CaseInsensitive)
+                < 0);
+    case (CredentialModel::Col_Accessed):
+        return sourceModel()->data(left, CredentialModel::AccessedRole).toDate()
+               < sourceModel()->data(right, CredentialModel::AccessedRole).toDate();
+    default:
+        return QSortFilterProxyModel::lessThan(left, right);
+    }
+
+    return false;
 }
 
 void MainWindow::connectToDevice()

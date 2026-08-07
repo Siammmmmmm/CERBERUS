@@ -372,7 +372,10 @@
           <bool>false</bool>
          </property>
          <attribute name="horizontalHeaderVisible">
-          <bool>false</bool>
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+          <bool>true</bool>
          </attribute>
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>false</bool>

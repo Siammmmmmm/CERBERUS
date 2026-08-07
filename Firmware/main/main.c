@@ -121,7 +121,8 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
 }  
 
     //payload == 52, 52, 53
-    static const credential meta[] = {{0, 754, 753, 752, 0,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 0,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 2,"claude", "claude.ai", "example@outlook.com", "notes1"}};
+    static const credential meta[] = {{0, 754, 753, 752, 1,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 1,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 3,"claude", "claude.ai", "example@outlook.com", "notes1"},{3, 643, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4"},
+{4, 916, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5"}};
 
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
 
