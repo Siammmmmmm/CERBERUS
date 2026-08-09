@@ -103,7 +103,7 @@ void CerberusProtocol::parse_frame()
             break;
         }
 
-        // Check if element is present
+        // Check if START_BYTE is present if not, delete everything til there is one
         if (buffer.at(0) != START_BYTE) {
             auto it = std::find(buffer.begin(), buffer.end(), START_BYTE);
             if (it == buffer.end()) {
@@ -122,10 +122,10 @@ void CerberusProtocol::parse_frame()
             break;
         }
 
-        uint8_t check = crbrs_CRC8(&buffer.at(1), frame_len + 2);
+        uint8_t check = crbrs_CRC8(&buffer.at(1), frame_len + 2); //validate with crc
         if (buffer.at(frame_len + 3) == check) {
             QByteArray payload(reinterpret_cast<const char *>(buffer.data() + 3), frame_len);
-            uint8_t opcode = buffer.at(1);
+            uint8_t opcode = buffer.at(1); //seperate payload and opcode
             switch (opcode) {
             case RES_METADATA: {
                 credential metadata;

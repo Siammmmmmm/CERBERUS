@@ -3,6 +3,9 @@
 //METADATA: slot_idx[0-1]; accessed[2-3]; modified[4-5]; created[6-7];
 //flags[8]; len[9] site; len url; len email; notes;
 
+//GET_PASSWORD: slot_idx[0-1];
+//PASSWORD: len[0]; password[1:]
+
 #define CMD_PING          0x01
 #define CMD_UNLOCK        0x02
 #define CMD_GET_METADATA  0x03
@@ -25,7 +28,8 @@ typedef enum {
     NACK_BAD_SLOT_IDX,
     NACK_DECRYPT_FAILURE,
     NACK_STORAGE_ERROR,
-    NACK_DEVICE_DISCONNECTED
+    NACK_DEVICE_DISCONNECTED,
+    NACK_BAD_PAYLOAD
 } nack_reason;
 
 #define EVT_LOG           0xC0 //log event for any 

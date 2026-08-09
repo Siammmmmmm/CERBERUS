@@ -10,6 +10,7 @@
 #define CAP_URL 96
 #define CAP_EMAIL 64
 #define CAP_NOTES 50
+#define CAP_PASSWORD 30
 #define FLAG_OCCUPIED 0x1
 #define FLAG_FAVORITE 0x2
 

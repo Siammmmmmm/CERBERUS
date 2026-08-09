@@ -49,6 +49,41 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->searchInput, &QLineEdit::textChanged, this, [this](const QString &text) {
         proxy->setFilterFixedString(text);
     });
+    connect(ui->credentialList->selectionModel(),
+            &QItemSelectionModel::currentRowChanged,
+            this,
+            &MainWindow::onSelectionChanged);
+
+    //TODO: fix filtering the selected (cosmetic)
+    // connect(proxy, &QAbstractItemModel::rowsAboutToBeRemoved, this, [this] {
+    //     if (ui->credentialList->selectionModel()->currentIndex().isValid()) {
+    //         qDebug() << ui->credentialList->selectionModel()
+    //                         ->currentIndex()
+    //                         .data(CredentialModel::SlotIdxRole)
+    //                         .toInt();
+    //         m_before = ui->credentialList->selectionModel()
+    //                        ->currentIndex()
+    //                        .data(CredentialModel::SlotIdxRole)
+    //                        .toInt();
+    //     } else {
+    //         m_before = -1;
+    //     }
+    // });
+
+    // connect(proxy, &QAbstractItemModel::rowsRemoved, this, [this] {
+    //     if (m_before
+    //         != ui->credentialList->selectionModel()
+    //                ->currentIndex()
+    //                .data(CredentialModel::SlotIdxRole)
+    //                .toInt()) {
+    //         qDebug() << ui->credentialList->selectionModel()
+    //                         ->currentIndex()
+    //                         .data(CredentialModel::SlotIdxRole)
+    //                         .toInt();
+    //         ui->credentialList->selectionModel()->clearCurrentIndex();
+    //         ui->credentialList->selectionModel()->clearSelection();
+    //     }
+    // });
 }
 
 bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) const
@@ -90,10 +125,10 @@ void MainWindow::connectToDevice()
     }
 }
 
-void MainWindow::on_addBtn_clicked()
+void MainWindow::on_syncBtn_clicked()
 {
     if (!serial->isOpen()) {
-        ui->deviceStatus->setText("Not connected");
+        ui->deviceInfo->setText("● Device NOT Connected");
         return;
     }
     std::vector<uint8_t> payload = {};
@@ -130,6 +165,34 @@ void MainWindow::handleFrame(uint8_t opcode, QByteArray payload)
 
         break;
     }
+}
+
+void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
+{
+    if (!current.isValid()) {
+        m_selected = -1;
+        ui->detailStack->setCurrentIndex(0);
+        return;
+    }
+    //m_selected = current.data(CredentialModel::SlotIdxRole).toInt();
+    ui->detailPasswordValue->setText("•••••••••••••••••••");
+    ui->passwordBtnStack->setCurrentIndex(0);
+    ui->detailSiteName->setText(current.data(CredentialModel::SiteRole).toString());
+    ui->detailUrl->setText(current.data(CredentialModel::UrlRole).toString());
+    ui->detailEmailValue->setText(current.data(CredentialModel::EmailRole).toString());
+    ui->detailNotes->setPlainText(current.data(CredentialModel::NotesRole).toString());
+    ui->detailAccessed->setText(
+        ("Last Accessed: ")
+        + current.data(CredentialModel::AccessedRole).toDate().toString("MMM d, yyyy"));
+    ui->detailModified->setText(
+        ("Last Modified: ")
+        + current.data(CredentialModel::ModifiedRole).toDate().toString("MMM d, yyyy"));
+    ui->detailCreated->setText(
+        ("First Created: ")
+        + current.data(CredentialModel::CreatedRole).toDate().toString("MMM d, yyyy"));
+    ui->favBtnDetail->setChecked((current.data(CredentialModel::FlagsRole).toInt() & FLAG_FAVORITE)
+                                 != 0);
+    ui->detailStack->setCurrentIndex(1);
 }
 
 MainWindow::~MainWindow()

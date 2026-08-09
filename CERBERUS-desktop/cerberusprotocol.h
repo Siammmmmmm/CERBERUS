@@ -23,6 +23,7 @@ signals:
     void frameReceived(uint8_t opcode, QByteArray payload);
     void metadataReceived(credential metadata);
     void metadataComplete();
+    void fetchPass();
     void bytesToSend(QByteArray data);
     void protocolError();
 

@@ -36,11 +36,12 @@ public:
     ~MainWindow() override;
 
 private slots:
-    void on_addBtn_clicked();
+    void on_syncBtn_clicked();
     void onDataReceived();
     void onMetadataReceived(credential metadata);
     void onMetadataComplete();
     void handleFrame(uint8_t opcode, QByteArray payload);
+    void onSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
 
 private:
     Ui::MainWindow *ui;
@@ -49,6 +50,9 @@ private:
     CredentialModel *model;
     CustomSort *proxy;
     void connectToDevice();
+
+    int m_selected = -1;
+    int m_before = -1;
 };
 
 #endif // MAINWINDOW_H

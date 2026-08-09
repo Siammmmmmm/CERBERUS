@@ -133,7 +133,26 @@ QPushButton#lockBtn:hover {
 QPushButton#lockBtn:pressed {
     background: rgba(240, 74, 65, 0.28);
 }
+QPushButton#syncBtn {
+    background: rgba(66, 255, 133, 0.10);
+    border: 1px solid rgba(66, 255, 133, 0.45);
+    color: #42ff85;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 500;
+    font-size: 12px;
+    text-align: center;
+}
 
+QPushButton#syncBtn:hover {
+    background: rgba(66, 255, 133, 0.20);
+    border-color: rgba(66, 255, 133, 0.65);
+    color: #6fffa3;
+}
+
+QPushButton#syncBtn:pressed {
+    background: rgba(66, 255, 133, 0.28);
+}
 /* ── LIST COLUMN ── */
 QWidget#listCol {
     background: #08080f;
@@ -320,12 +339,16 @@ QStackedWidget#detailStack > QWidget {
     padding: 0px;
 }
 
-QLabel#placeholderLabel {
-    color: #5a73a0;
+QLabel#placeholderText {
+    color: #6a82a8;
     font-size: 14px;
     background: transparent;
 }
-
+QWidget#placeholderFrame {
+    background: transparent;
+    border: 1px solid #101828;
+    border-radius: 11px;
+}
 QScrollArea#detailScrollArea {
     background: #080d18;
     border: none;

@@ -33,6 +33,7 @@ typedef struct
     char url[CAP_URL+1];
     char email[CAP_EMAIL+1];
     char notes[CAP_NOTES+1];
+    char password[CAP_PASSWORD];
 } credential;
 
 // ── LED
@@ -118,15 +119,14 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
     if(pos == 0) return 0;
 
     return pos;
-}  
+} 
 
     //payload == 52, 52, 53
-    static const credential meta[] = {{0, 754, 753, 752, 1,"github", "github.com", "example@gmail.com", "notes3"}, {1, 744, 743, 742, 1,"google", "google.com", "example@gmail.com", "notes2"}, {2, 722, 721, 720, 3,"claude", "claude.ai", "example@outlook.com", "notes1"},{3, 643, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4"},
-{4, 916, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5"}};
+static const credential meta[] = {{0, 754, 753, 752, 1,"github", "github.com", "example@gmail.com", "notes3","ASAEDSAD"}, {1, 744, 743, 742, 1,"google", "google.com", "example@gmail.com", "notes2","ASgerg6fsdfs"}, {2, 722, 721, 720, 3,"claude", "claude.ai", "example@outlook.com", "notes1","ASg445454545"},{3, 643, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4", "123456789"},
+{4, 916, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5","AAA"}};
 
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
-
-
+    uint8_t reason = NACK_UNKNOWN_OPCODE;
     switch (opcode)
     {
     case CMD_PING:
@@ -154,9 +154,44 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload){
         crbrs_send_packet(RES_METADATA_END, 0 , NULL);
         break;
         }
+
+    case CMD_GET_PASSWORD:
+        {
+        if(len != 2){
+            reason = NACK_BAD_PAYLOAD;
+            crbrs_send_packet(RES_NACK, 1 , &reason);
+            break;
+        }
+        const credential *found = NULL;
+        uint8_t buf[MAX_PAYLOAD];
+        uint8_t low = payload[1];
+        uint16_t slot_idx = payload[0] | (low << 8);
+        for (size_t i = 0; i < (sizeof(meta)/sizeof(meta[0])); i++)
+        {
+            if(meta[i].slot_idx == slot_idx){
+                found = &meta[i];
+                break;
+            }
+        }
+        if(found == NULL || ((found->flags & FLAG_OCCUPIED) == 0)){
+            reason = NACK_BAD_SLOT_IDX;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        size_t pos = 0;
+        pos = crbrs_encode_char(buf, pos, found->password, CAP_PASSWORD);
+        if( pos == 0){
+            ESP_LOGW(TAG, "INVALID record at slot: %d", found->slot_idx);
+            break;
+        }
+        crbrs_send_packet(RES_PASSWORD, (uint8_t) pos, buf);
+        break;
+        }
+
     default:
         ESP_LOGI(TAG, "unrecognized opcode: %02X", opcode);
-        crbrs_send_packet(RES_NACK, 0, NULL);
+        reason = NACK_UNKNOWN_OPCODE;
+        crbrs_send_packet(RES_NACK, 1, &reason);
 
         //flash red
         led_set_color(32, 0, 0);
