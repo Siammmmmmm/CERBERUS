@@ -17,4 +17,9 @@ struct credential
     QString notes;
 };
 
+struct password{
+    quint8 len = 0;
+    QString pass;
+};
+
 #endif // CREDENTIAL_H

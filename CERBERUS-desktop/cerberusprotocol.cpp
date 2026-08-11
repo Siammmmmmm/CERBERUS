@@ -72,6 +72,17 @@ bool CerberusProtocol::unpack_metadata(const QByteArray &payload, credential &me
     return true;
 };
 
+bool CerberusProtocol::unpack_password(const QByteArray &payload, QString &password){
+    size_t pos = 0;
+    bool ok = true;
+
+    password = decode_char(pos, payload, CAP_PASSWORD, ok);
+    if (pos != payload.size() || !ok) {
+        return false;
+    }
+    return true;
+}
+
 void CerberusProtocol::feedBytes(const QByteArray &data)
 {
     const uint8_t *ptr = reinterpret_cast<const uint8_t *>(data.constData());
@@ -139,6 +150,20 @@ void CerberusProtocol::parse_frame()
 
             case RES_METADATA_END:
                 emit metadataComplete();
+                break;
+
+            case RES_PASSWORD:
+            {
+                QString password;
+                if (CerberusProtocol::unpack_password(payload, password)) {
+                    emit passReceived(password);
+                } else {
+                    emit protocolError();
+                }
+                break;
+            }
+            case RES_NACK:
+                emit nackReceived(static_cast<quint8>(payload.at(0)));
                 break;
 
             default:

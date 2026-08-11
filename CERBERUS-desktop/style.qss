@@ -453,6 +453,13 @@ QLabel#detailPasswordValue {
     background: transparent;
 }
 
+QLabel#detailPasswordValue[revealed="true"] {
+    color: #e6ecf6;
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-family: "Consolas", monospace;
+}
+
 /* ── FETCH AND COPY BUTTONS ── */
 QStackedWidget#passwordBtnStack {
     background: transparent;

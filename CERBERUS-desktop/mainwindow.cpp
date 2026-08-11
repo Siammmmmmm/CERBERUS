@@ -35,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(protocol, &CerberusProtocol::protocolError, this, [this] {
         ui->deviceStatus->setText("Protocol error");
     });
+    connect(protocol, &CerberusProtocol::passReceived, this, &MainWindow::onPassReceived);
+    connect(protocol, &CerberusProtocol::nackReceived, this, &MainWindow::onNackReceived);
+
 
     proxy->setSourceModel(model);
     ui->credentialList->setModel(proxy);
@@ -86,8 +89,15 @@ MainWindow::MainWindow(QWidget *parent)
     // });
 }
 
+void MainWindow::passwordValue(bool reveal){
+    ui->detailPasswordValue->setProperty("revealed", reveal);
+    ui->detailPasswordValue->style()->unpolish(ui->detailPasswordValue);
+    ui->detailPasswordValue->style()->polish(ui->detailPasswordValue);
+}
+
 bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
+    //helps sort each column based on the col ordered values
     switch (left.column()) {
     case (CredentialModel::Col_Fav):
         return (
@@ -111,7 +121,7 @@ bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) con
 
 void MainWindow::connectToDevice()
 {
-    serial->setPortName("COM9"); // change to your port
+    serial->setPortName("COM4"); // change to your port
     serial->setBaudRate(QSerialPort::Baud115200);
     serial->setDataBits(QSerialPort::Data8);
     serial->setParity(QSerialPort::NoParity);
@@ -153,6 +163,45 @@ void MainWindow::onMetadataComplete()
     ui->deviceStatus->setText("METADATA: COMPLETED");
 }
 
+void MainWindow::onPassReceived(QString password){
+    ui->detailPasswordValue->setText(password);
+    ui->passwordBtnStack->setCurrentIndex(1);
+    ui->detailPasswordValue->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    passwordValue(true);
+}
+
+void MainWindow::onNackReceived(int reason){
+    ui->deviceStatus->setText("Received: NACK");
+    //put reasons in debug so shoulder surfers cant see
+    switch(reason){
+    case NACK_BAD_PAYLOAD:
+        qDebug() << "NACK: BAD PAYLOAD";
+        break;
+    case NACK_BAD_SLOT_IDX:
+        qDebug() << "NACK: BAD SLOT";
+        break;
+    case NACK_DECRYPT_FAILURE:
+        qDebug() << "NACK: DECRYPT FAILURE";
+        break;
+    case NACK_DEVICE_DISCONNECTED:
+        qDebug() << "NACK: DEVICE DISCONNECTED";
+        break;
+    case NACK_DEVICE_LOCKED:
+        qDebug() << "NACK: DEVICE LOCKED";
+        break;
+    case NACK_STORAGE_ERROR:
+        qDebug() << "NACK: STORAGE ERROR";
+        break;
+    case NACK_UNKNOWN_OPCODE:
+        qDebug() << "NACK: UNKNOWN OPCODE";
+        break;
+    default:
+        ui->deviceStatus->setText("NACK: INVALID NACK CODE");
+        break;
+    }
+
+}
+
 void MainWindow::handleFrame(uint8_t opcode, QByteArray payload)
 {
     switch (opcode) {
@@ -174,7 +223,9 @@ void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelInde
         ui->detailStack->setCurrentIndex(0);
         return;
     }
-    //m_selected = current.data(CredentialModel::SlotIdxRole).toInt();
+    ui->detailPasswordValue->setTextInteractionFlags(Qt::NoTextInteraction);
+    passwordValue(false); //update passvalue fields
+    m_selected = current.data(CredentialModel::SlotIdxRole).toInt();
     ui->detailPasswordValue->setText("•••••••••••••••••••");
     ui->passwordBtnStack->setCurrentIndex(0);
     ui->detailSiteName->setText(current.data(CredentialModel::SiteRole).toString());
@@ -201,3 +252,17 @@ MainWindow::~MainWindow()
         serial->close();
     delete ui;
 }
+
+void MainWindow::on_fetchPasswordBtn_clicked()
+{
+    if(m_selected < 0){
+        return;
+    }
+    //break slot_idx into low and high bytes for payload
+    uint8_t low = m_selected & 0xFF;
+    uint8_t high = (m_selected >> 8) & 0xFF;
+        std::vector<uint8_t> payload = {low,high};
+    protocol->sendCommand(CMD_GET_PASSWORD, payload);
+
+}
+

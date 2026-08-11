@@ -38,10 +38,13 @@ public:
 private slots:
     void on_syncBtn_clicked();
     void onDataReceived();
+    void onPassReceived(QString password);
     void onMetadataReceived(credential metadata);
     void onMetadataComplete();
+    void onNackReceived(int reason);
     void handleFrame(uint8_t opcode, QByteArray payload);
     void onSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
+    void on_fetchPasswordBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -50,6 +53,7 @@ private:
     CredentialModel *model;
     CustomSort *proxy;
     void connectToDevice();
+    void passwordValue(bool reveal);
 
     int m_selected = -1;
     int m_before = -1;
