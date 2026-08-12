@@ -8,6 +8,9 @@
 #include <cstdint>
 #include <qsortfilterproxymodel.h>
 #include <vector>
+#include <QTimer>
+#include <QClipboard>
+#include <QGuiApplication>
 
 class CustomSort : public QSortFilterProxyModel
 {
@@ -45,6 +48,10 @@ private slots:
     void handleFrame(uint8_t opcode, QByteArray payload);
     void onSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
     void on_fetchPasswordBtn_clicked();
+    void on_copyPasswordBtn_clicked();
+    void onTimeout();
+
+    void on_copyEmailBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -52,6 +59,8 @@ private:
     CerberusProtocol *protocol;
     CredentialModel *model;
     CustomSort *proxy;
+    QTimer *timer;
+    QString pswrd;
     void connectToDevice();
     void passwordValue(bool reveal);
 

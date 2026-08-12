@@ -5,7 +5,7 @@ CerberusProtocol::CerberusProtocol(QObject *parent)
 {}
 
 quint16 CerberusProtocol::readU16(const QByteArray &payload, size_t &pos)
-{
+{//format 2 8bit blocks into 1 16bit block
     quint8 high = static_cast<quint8>(payload.at(pos + 1)) & 0xFF;
     quint16 block = (static_cast<quint8>(payload.at(pos)) | (high << 8));
     pos += 2;

@@ -522,6 +522,12 @@ QPushButton#copyEmailBtn:hover {
     color: #aec3f0;
 }
 
+QPushButton#copyEmailBtn:pressed {
+    background: rgba(37, 99, 235, 0.18);
+    border-color: #2563eb;
+    color: #cfddfc;
+}
+
 /* ── NOTES ── */
 QTextEdit#detailNotes {
     background: #0b1322;

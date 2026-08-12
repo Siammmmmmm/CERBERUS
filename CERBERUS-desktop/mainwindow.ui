@@ -459,7 +459,7 @@
        <item>
         <widget class="QStackedWidget" name="detailStack">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_3">
           <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -587,6 +587,9 @@
                        <property name="text">
                         <string>site.com</string>
                        </property>
+                       <property name="textInteractionFlags">
+                        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
+                       </property>
                       </widget>
                      </item>
                     </layout>
@@ -680,6 +683,9 @@
                        </property>
                        <property name="text">
                         <string>email@example.com</string>
+                       </property>
+                       <property name="textInteractionFlags">
+                        <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
                        </property>
                       </widget>
                      </item>

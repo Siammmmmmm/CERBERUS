@@ -23,6 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
     protocol = new CerberusProtocol(this);
     model = new CredentialModel(this);
     proxy = new CustomSort(this);
+    timer = new QTimer(this);
+    timer->setSingleShot(true);
+    QString password = "";
 
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
@@ -37,10 +40,10 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(protocol, &CerberusProtocol::passReceived, this, &MainWindow::onPassReceived);
     connect(protocol, &CerberusProtocol::nackReceived, this, &MainWindow::onNackReceived);
-
+    connect(timer, &QTimer::timeout, this, &MainWindow::onTimeout);
 
     proxy->setSourceModel(model);
-    ui->credentialList->setModel(proxy);
+    ui->credentialList->setModel(proxy); //using a proxy to keep the og creds but hide specific ones
     ui->credentialList->setSortingEnabled(true);
     QHeaderView *header = ui->credentialList->horizontalHeader();
     header->setSectionResizeMode(CredentialModel::Col_Fav, QHeaderView::Fixed);
@@ -56,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
             &QItemSelectionModel::currentRowChanged,
             this,
             &MainWindow::onSelectionChanged);
+
 
     //TODO: fix filtering the selected (cosmetic)
     // connect(proxy, &QAbstractItemModel::rowsAboutToBeRemoved, this, [this] {
@@ -90,9 +94,14 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::passwordValue(bool reveal){
+    if(reveal){
+        ui->detailPasswordValue->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    }else{
+        ui->detailPasswordValue->setTextInteractionFlags(Qt::NoTextInteraction);
+    }
     ui->detailPasswordValue->setProperty("revealed", reveal);
     ui->detailPasswordValue->style()->unpolish(ui->detailPasswordValue);
-    ui->detailPasswordValue->style()->polish(ui->detailPasswordValue);
+    ui->detailPasswordValue->style()->polish(ui->detailPasswordValue); //updates the Ui
 }
 
 bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) const
@@ -121,7 +130,7 @@ bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) con
 
 void MainWindow::connectToDevice()
 {
-    serial->setPortName("COM4"); // change to your port
+    serial->setPortName("COM4"); //change to your port
     serial->setBaudRate(QSerialPort::Baud115200);
     serial->setDataBits(QSerialPort::Data8);
     serial->setParity(QSerialPort::NoParity);
@@ -165,8 +174,7 @@ void MainWindow::onMetadataComplete()
 
 void MainWindow::onPassReceived(QString password){
     ui->detailPasswordValue->setText(password);
-    ui->passwordBtnStack->setCurrentIndex(1);
-    ui->detailPasswordValue->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    ui->passwordBtnStack->setCurrentIndex(1);  //show copy button
     passwordValue(true);
 }
 
@@ -223,11 +231,11 @@ void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelInde
         ui->detailStack->setCurrentIndex(0);
         return;
     }
-    ui->detailPasswordValue->setTextInteractionFlags(Qt::NoTextInteraction);
+    onTimeout();
     passwordValue(false); //update passvalue fields
     m_selected = current.data(CredentialModel::SlotIdxRole).toInt();
     ui->detailPasswordValue->setText("•••••••••••••••••••");
-    ui->passwordBtnStack->setCurrentIndex(0);
+    ui->passwordBtnStack->setCurrentIndex(0); //show fetch button
     ui->detailSiteName->setText(current.data(CredentialModel::SiteRole).toString());
     ui->detailUrl->setText(current.data(CredentialModel::UrlRole).toString());
     ui->detailEmailValue->setText(current.data(CredentialModel::EmailRole).toString());
@@ -246,13 +254,6 @@ void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelInde
     ui->detailStack->setCurrentIndex(1);
 }
 
-MainWindow::~MainWindow()
-{
-    if (serial->isOpen())
-        serial->close();
-    delete ui;
-}
-
 void MainWindow::on_fetchPasswordBtn_clicked()
 {
     if(m_selected < 0){
@@ -265,4 +266,38 @@ void MainWindow::on_fetchPasswordBtn_clicked()
     protocol->sendCommand(CMD_GET_PASSWORD, payload);
 
 }
+
+void MainWindow::onTimeout(){
+    if(QGuiApplication::clipboard()->text()==pswrd){
+        pswrd.clear();
+        QGuiApplication::clipboard()->clear();
+    }
+}
+
+void MainWindow::on_copyPasswordBtn_clicked()
+{
+    pswrd = ui->detailPasswordValue->text(); //set the current password then copies
+    QGuiApplication::clipboard()->setText(pswrd);
+    timer->start(30000);
+}
+
+void MainWindow::on_copyEmailBtn_clicked()
+{
+    if(m_selected < 0){
+        return;
+    }
+    QGuiApplication::clipboard()->setText(ui->detailEmailValue->text()); //copies the email
+}
+
+MainWindow::~MainWindow()
+{
+    if (serial->isOpen())
+        serial->close();
+    if(QGuiApplication::clipboard()->text()==pswrd){
+        pswrd.clear();
+        QGuiApplication::clipboard()->clear();
+    }
+    delete ui;
+}
+
 
