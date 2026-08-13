@@ -911,13 +911,6 @@
                 <widget class="QWidget" name="metaSection" native="true">
                  <layout class="QVBoxLayout" name="verticalLayout_12">
                   <item>
-                   <widget class="QLabel" name="detailAccessed">
-                    <property name="text">
-                     <string>Last Accessed: </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QLabel" name="detailModified">
                     <property name="text">
                      <string>Last modified: </string>

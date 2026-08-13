@@ -11,10 +11,9 @@ class CredentialModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    enum Column { Col_Fav = 0, Col_Site, Col_Accessed, ColumnCount };
+    enum Column { Col_Fav = 0, Col_Site, Col_Modified, ColumnCount };
     enum Role {
         SlotIdxRole = Qt::UserRole + 1,
-        AccessedRole,
         ModifiedRole,
         CreatedRole,
         FlagsRole,

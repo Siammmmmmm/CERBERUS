@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
     QHeaderView *header = ui->credentialList->horizontalHeader();
     header->setSectionResizeMode(CredentialModel::Col_Fav, QHeaderView::Fixed);
     header->setSectionResizeMode(CredentialModel::Col_Site, QHeaderView::Stretch);
-    header->setSectionResizeMode(CredentialModel::Col_Accessed, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(CredentialModel::Col_Modified, QHeaderView::ResizeToContents);
     header->resizeSection(CredentialModel::Col_Fav, 32);
     proxy->setFilterKeyColumn(CredentialModel::Col_Site);
     proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -95,8 +95,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::passwordValue(bool reveal){
     if(reveal){
+        ui->passwordBtnStack->setCurrentIndex(1);  //show copy button
         ui->detailPasswordValue->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
     }else{
+        ui->passwordBtnStack->setCurrentIndex(0); //show fetch button
+        ui->detailPasswordValue->setText("•••••••••••••••••••");
         ui->detailPasswordValue->setTextInteractionFlags(Qt::NoTextInteraction);
     }
     ui->detailPasswordValue->setProperty("revealed", reveal);
@@ -118,9 +121,9 @@ bool CustomSort::lessThan(const QModelIndex &left, const QModelIndex &right) con
                                  sourceModel()->data(right).toString(),
                                  Qt::CaseInsensitive)
                 < 0);
-    case (CredentialModel::Col_Accessed):
-        return sourceModel()->data(left, CredentialModel::AccessedRole).toDate()
-               < sourceModel()->data(right, CredentialModel::AccessedRole).toDate();
+    case (CredentialModel::Col_Modified):
+        return sourceModel()->data(left, CredentialModel::ModifiedRole).toDate()
+               < sourceModel()->data(right, CredentialModel::ModifiedRole).toDate();
     default:
         return QSortFilterProxyModel::lessThan(left, right);
     }
@@ -231,18 +234,13 @@ void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelInde
         ui->detailStack->setCurrentIndex(0);
         return;
     }
-    onTimeout();
-    passwordValue(false); //update passvalue fields
+    onTimeout(); //update passvalue fields & clipboard
+    timer->stop();
     m_selected = current.data(CredentialModel::SlotIdxRole).toInt();
-    ui->detailPasswordValue->setText("•••••••••••••••••••");
-    ui->passwordBtnStack->setCurrentIndex(0); //show fetch button
     ui->detailSiteName->setText(current.data(CredentialModel::SiteRole).toString());
     ui->detailUrl->setText(current.data(CredentialModel::UrlRole).toString());
     ui->detailEmailValue->setText(current.data(CredentialModel::EmailRole).toString());
     ui->detailNotes->setPlainText(current.data(CredentialModel::NotesRole).toString());
-    ui->detailAccessed->setText(
-        ("Last Accessed: ")
-        + current.data(CredentialModel::AccessedRole).toDate().toString("MMM d, yyyy"));
     ui->detailModified->setText(
         ("Last Modified: ")
         + current.data(CredentialModel::ModifiedRole).toDate().toString("MMM d, yyyy"));
@@ -268,17 +266,18 @@ void MainWindow::on_fetchPasswordBtn_clicked()
 }
 
 void MainWindow::onTimeout(){
-    if(QGuiApplication::clipboard()->text()==pswrd){
+    if(QGuiApplication::clipboard()->text()==pswrd){ //if the password shown matches the clipboard
         pswrd.clear();
         QGuiApplication::clipboard()->clear();
     }
+    passwordValue(false);
 }
 
 void MainWindow::on_copyPasswordBtn_clicked()
 {
     pswrd = ui->detailPasswordValue->text(); //set the current password then copies
     QGuiApplication::clipboard()->setText(pswrd);
-    timer->start(30000);
+    timer->start(20000);
 }
 
 void MainWindow::on_copyEmailBtn_clicked()

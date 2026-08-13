@@ -11,6 +11,7 @@
 #include "opcodes.h"
 #include "protocol.h"
 #include "transport.h"
+#include "nvs_flash.h"
 
 static const char *TAG = "CERBERUS";
 
@@ -25,7 +26,6 @@ static led_strip_handle_t led_strip;
 typedef struct
 {
     uint16_t slot_idx;
-    uint16_t time_accessed;
     uint16_t time_modified;
     uint16_t time_created;
     uint8_t flags;
@@ -104,7 +104,6 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
         return 0;
 
     pos = crbrs_encode_bits(buf, pos, metadata->slot_idx);
-    pos = crbrs_encode_bits(buf, pos, metadata->time_accessed);
     pos = crbrs_encode_bits(buf, pos, metadata->time_modified);
     pos = crbrs_encode_bits(buf, pos, metadata->time_created);
     buf[pos++] = metadata->flags; // pos = 8
@@ -137,7 +136,7 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
 }
 
 // payload == 52, 52, 53
-static const credential meta[] = {{0, 754, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3", "ASAEDSAD"}, {1, 744, 743, 742, 1, "google", "google.com", "example@gmail.com", "notes2", "ASgerg6fsdfs"}, {2, 722, 721, 720, 3, "claude", "claude.ai", "example@outlook.com", "notes1", "ASg445454545"}, {3, 643, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4", "123456789"}, {4, 916, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5", "AAA"}};
+static const credential meta[] = {{0, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3", "ASAEDSAD"}, {1, 743, 742, 1, "google", "google.com", "example@gmail.com", "notes2", "ASgerg6fsdfs"}, {2, 721, 720, 3, "claude", "claude.ai", "example@outlook.com", "notes1", "ASg445454545"}, {3, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4", "123456789"}, {4, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5", "AAA"}};
 
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
 {
@@ -264,7 +263,19 @@ void app_main(void)
 {
     configure_led();
     uart_init();
-    atcab_init(&cfg_ateccx08a_i2c_default);
+    esp_err_t err = atcab_init(&cfg_ateccx08a_i2c_default);
+    ESP_LOGI(TAG, "SECURE ELEMENT: %s", esp_err_to_name(err));
+    // ESP_ERROR_CHECK(err);
+
+    err = nvs_flash_init_partition("cred");
+    ESP_LOGI(TAG, "PARTITION: %s", esp_err_to_name(err));
+    if ((err == ESP_ERR_NVS_NO_FREE_PAGES) || (err == ESP_ERR_NVS_NEW_VERSION_FOUND))
+    {
+        nvs_flash_erase_partition("cred");
+        err = nvs_flash_init_partition("cred");
+        ESP_LOGI(TAG, "PARTITION: %s", esp_err_to_name(err));
+    }
+    ESP_ERROR_CHECK(err);
 
     // blue on startup to show device is alive
     led_set_color(0, 0, 32);

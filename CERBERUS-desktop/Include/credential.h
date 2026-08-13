@@ -7,7 +7,6 @@
 struct credential
 {
     quint16 slot_idx = 0;
-    QDate time_accessed;
     QDate time_modified;
     QDate time_created;
     quint8 flags = 0;

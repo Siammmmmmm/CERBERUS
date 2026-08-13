@@ -34,7 +34,7 @@ QVariant CredentialModel::headerData(int section, Qt::Orientation orientation, i
         case Col_Fav:
             return static_cast<int>(Qt::AlignCenter);
 
-        case Col_Accessed:
+        case Col_Modified:
             return static_cast<int>(Qt::AlignRight | Qt::AlignVCenter);
         default:
             return QVariant{};
@@ -45,8 +45,8 @@ QVariant CredentialModel::headerData(int section, Qt::Orientation orientation, i
             return QString{"★"};
         case Col_Site:
             return QString{"Site"};
-        case Col_Accessed:
-            return QString{"Last Accessed"};
+        case Col_Modified:
+            return QString{"Last Modified"};
 
         default:
             return QVariant{};
@@ -67,8 +67,6 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
     switch (role) {
     case SlotIdxRole:
         return static_cast<int>(c.slot_idx);
-    case AccessedRole:
-        return c.time_accessed;
     case ModifiedRole:
         return c.time_modified;
     case CreatedRole:
@@ -93,8 +91,8 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
             }
         case Col_Site:
             return c.site;
-        case Col_Accessed:
-            return c.time_accessed.toString("MMM d, yyyy");
+        case Col_Modified:
+            return c.time_modified.toString("MMM d, yyyy");
         default:
             return QVariant{};
         }
@@ -110,7 +108,7 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
         }
         case Col_Site:
             return QColor("#5a73a0");
-        case Col_Accessed:
+        case Col_Modified:
             return QColor("#5a73a0");
 
         default:
@@ -136,7 +134,7 @@ QVariant CredentialModel::data(const QModelIndex &index, int role) const
         case Col_Fav:
             return static_cast<int>(Qt::AlignCenter);
 
-        case Col_Accessed:
+        case Col_Modified:
             return static_cast<int>(Qt::AlignRight | Qt::AlignVCenter);
         default:
             return QVariant{};

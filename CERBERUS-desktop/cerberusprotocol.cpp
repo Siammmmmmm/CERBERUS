@@ -45,7 +45,6 @@ bool CerberusProtocol::unpack_metadata(const QByteArray &payload, credential &me
 
     metadata.slot_idx = readU16(payload, pos);
 
-    metadata.time_accessed = decode_date(readU16(payload, pos));
     metadata.time_modified = decode_date(readU16(payload, pos));
     metadata.time_created = decode_date(readU16(payload, pos));
 
