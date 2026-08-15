@@ -30,6 +30,7 @@ void crbrs_send_packet(uint8_t opcode, uint8_t len, const uint8_t *payload)
     uart_write_bytes(UART_NUM, packet, len + 4);
 }
 
+//parses a payload into valid frames then internally uses dispatch to send thru the wire
 void crbrs_parse_frame(frame_parser *fp, const uint8_t *data, size_t len, frame_handler on_frame)
 {
     if (((fp->buf_len) + len) > MAX_BUFFER)

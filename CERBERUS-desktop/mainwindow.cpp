@@ -177,7 +177,6 @@ void MainWindow::onMetadataComplete()
 
 void MainWindow::onPassReceived(QString password){
     ui->detailPasswordValue->setText(password);
-    ui->passwordBtnStack->setCurrentIndex(1);  //show copy button
     passwordValue(true);
 }
 

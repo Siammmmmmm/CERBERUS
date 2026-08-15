@@ -12,6 +12,7 @@
 #include "protocol.h"
 #include "transport.h"
 #include "nvs_flash.h"
+#include "store.h"
 
 static const char *TAG = "CERBERUS";
 
@@ -97,6 +98,7 @@ static inline size_t crbrs_encode_char(uint8_t buf[MAX_PAYLOAD], size_t pos, con
     return pos;
 }
 
+// packs a metadata struct to be sent later
 static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf[MAX_PAYLOAD], size_t buf_len)
 {
     size_t pos = 0;
@@ -138,6 +140,7 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
 // payload == 52, 52, 53
 static const credential meta[] = {{0, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3", "ASAEDSAD"}, {1, 743, 742, 1, "google", "google.com", "example@gmail.com", "notes2", "ASgerg6fsdfs"}, {2, 721, 720, 3, "claude", "claude.ai", "example@outlook.com", "notes1", "ASg445454545"}, {3, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4", "123456789"}, {4, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5", "AAA"}};
 
+// sends packets thru the wire based on specified actions
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
 {
     uint8_t reason = NACK_UNKNOWN_OPCODE;
@@ -244,7 +247,7 @@ void uart_task(void *pvParameters)
     uint8_t buf[MAX_BUFFER];
     frame_parser fp = {0};
 
-    ESP_LOGI(TAG, "CERBERUS device ready — waiting for commands");
+    ESP_LOGI(TAG, "CERBERUS device ready - waiting for commands");
 
     while (1)
     {
@@ -264,21 +267,59 @@ void app_main(void)
     configure_led();
     uart_init();
     esp_err_t err = atcab_init(&cfg_ateccx08a_i2c_default);
-    ESP_LOGI(TAG, "SECURE ELEMENT: %s", esp_err_to_name(err));
+    ESP_LOGI(TAG, "ATECC608b: %s", esp_err_to_name(err));
     // ESP_ERROR_CHECK(err);
-
-    err = nvs_flash_init_partition("cred");
-    ESP_LOGI(TAG, "PARTITION: %s", esp_err_to_name(err));
-    if ((err == ESP_ERR_NVS_NO_FREE_PAGES) || (err == ESP_ERR_NVS_NEW_VERSION_FOUND))
-    {
-        nvs_flash_erase_partition("cred");
-        err = nvs_flash_init_partition("cred");
-        ESP_LOGI(TAG, "PARTITION: %s", esp_err_to_name(err));
-    }
+    err = crbrs_store_init();
+    ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
 
-    // blue on startup to show device is alive
-    led_set_color(0, 0, 32);
+    uint16_t slot_idx = 32;
+    metadata cred2 = {};
+    memset(&cred2, 0xAA, sizeof(cred2));
+
+    err = crbrs_read_meta(slot_idx, &cred2);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        metadata cred1 = {slot_idx, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3"};
+        err = crbrs_write_meta(slot_idx, &cred1);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: cred1[ Slot: %u ,mTime: %u ,cTime: %u ,flag: %u ,site: %s , url: %s, email: %s, notes: %s ]", cred1.slot_idx, cred1.time_modified, cred1.time_created, cred1.flags, cred1.site, cred1.url, cred1.email, cred1.notes);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: cred2[ Slot: %u ,mTime: %u ,cTime: %u ,flag: %u ,site: %s , url: %s, email: %s, notes: %s ]", cred2.slot_idx, cred2.time_modified, cred2.time_created, cred2.flags, cred2.site, cred2.url, cred2.email, cred2.notes);
+    }
+
+    secret pass2 = {};
+    memset(&pass2, 0xAA, sizeof(pass2));
+    err = crbrs_read_pw(slot_idx, &pass2);
+
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        secret pass1 = {0};
+        pass1.len = 10;
+        memcpy(pass1.password, "asaasddasd", pass1.len);
+        err = crbrs_write_pw(slot_idx, &pass1);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: pass1[ len: %u ,password: %.*s ]", pass1.len, pass1.len, pass1.password);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: pass2[ len: %u ,password: %.*s ]", pass2.len, pass2.len, pass2.password);
+    }
+
+    // err = crbrs_delete(slot_idx);
+    // ESP_LOGI(TAG, "NVS: %s (deleted)", esp_err_to_name(err));
+    // ESP_ERROR_CHECK(err);
+
+    // green on startup to show device is alive
+    led_set_color(0, 32, 0);
     vTaskDelay(pdMS_TO_TICKS(150));
     led_off();
 
