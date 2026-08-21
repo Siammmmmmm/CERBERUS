@@ -22,21 +22,7 @@ static const char *TAG = "CERBERUS";
 #define UART_RX_PIN 44
 #define BUF_SIZE 256
 
-static uint8_t s_led_state = 0;
 static led_strip_handle_t led_strip;
-typedef struct
-{
-    uint16_t slot_idx;
-    uint16_t time_modified;
-    uint16_t time_created;
-    uint8_t flags;
-    char site[CAP_SITE + 1];
-    char url[CAP_URL + 1];
-    char email[CAP_EMAIL + 1];
-    char notes[CAP_NOTES + 1];
-    char password[CAP_PASSWORD];
-} credential;
-
 // ── LED
 
 static void configure_led(void)
@@ -99,7 +85,7 @@ static inline size_t crbrs_encode_char(uint8_t buf[MAX_PAYLOAD], size_t pos, con
 }
 
 // packs a metadata struct to be sent later
-static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf[MAX_PAYLOAD], size_t buf_len)
+static inline size_t crbrs_pack_metadata(const metadata *metadata, uint8_t buf[MAX_PAYLOAD], size_t buf_len)
 {
     size_t pos = 0;
     if (buf_len < MAX_PAYLOAD)
@@ -137,8 +123,15 @@ static inline size_t crbrs_pack_metadata(const credential *metadata, uint8_t buf
     return pos;
 }
 
-// payload == 52, 52, 53
-static const credential meta[] = {{0, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3", "ASAEDSAD"}, {1, 743, 742, 1, "google", "google.com", "example@gmail.com", "notes2", "ASgerg6fsdfs"}, {2, 721, 720, 3, "claude", "claude.ai", "example@outlook.com", "notes1", "ASg445454545"}, {3, 643, 643, 3, "Zoom", "zoom.us", "example@gmail.com", "notes4", "123456789"}, {4, 916, 916, 1, "amazon", "amazon.com", "example@outlook.com", "notes5", "AAA"}};
+static void crbrs_storage(const metadata *meta)
+{
+    uint8_t buf[MAX_PAYLOAD];
+    size_t pos = crbrs_pack_metadata(meta, buf, sizeof(buf));
+    if (pos != 0)
+    {
+        crbrs_send_packet(RES_METADATA, (uint8_t)pos, buf);
+    }
+}
 
 // sends packets thru the wire based on specified actions
 void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
@@ -152,22 +145,18 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
 
         // flash green
         led_set_color(0, 32, 0);
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(300));
         led_off();
         break;
 
     case CMD_UNLOCK:
     {
-        uint8_t buf[MAX_PAYLOAD];
-        for (size_t i = 0; i < (sizeof(meta) / sizeof(meta[0])); i++)
+        esp_err_t err = crbrs_find_meta(crbrs_storage);
+        if (err != ESP_OK)
         {
-            size_t pos = crbrs_pack_metadata(&meta[i], buf, sizeof(buf));
-            if (pos == 0)
-            {
-                ESP_LOGW(TAG, "INVALID record at slot: %d", meta[i].slot_idx);
-                continue;
-            }
-            crbrs_send_packet(RES_METADATA, (uint8_t)pos, buf);
+            reason = NACK_STORAGE_ERROR;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
         }
         crbrs_send_packet(RES_METADATA_END, 0, NULL);
         break;
@@ -181,32 +170,93 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
             crbrs_send_packet(RES_NACK, 1, &reason);
             break;
         }
-        const credential *found = NULL;
         uint8_t buf[MAX_PAYLOAD];
         uint8_t low = payload[1];
         uint16_t slot_idx = payload[0] | (low << 8);
-        for (size_t i = 0; i < (sizeof(meta) / sizeof(meta[0])); i++)
-        {
-            if (meta[i].slot_idx == slot_idx)
-            {
-                found = &meta[i];
-                break;
-            }
-        }
-        if (found == NULL || ((found->flags & FLAG_OCCUPIED) == 0))
+        metadata meta;
+        secret pw;
+        esp_err_t err = crbrs_read_meta(slot_idx, &meta);
+        if (err == ESP_ERR_NVS_NOT_FOUND)
         {
             reason = NACK_BAD_SLOT_IDX;
             crbrs_send_packet(RES_NACK, 1, &reason);
             break;
         }
-        size_t pos = 0;
-        pos = crbrs_encode_char(buf, pos, found->password, CAP_PASSWORD);
-        if (pos == 0)
+        else if (err != ESP_OK)
         {
-            ESP_LOGW(TAG, "INVALID record at slot: %d", found->slot_idx);
+            reason = NACK_STORAGE_ERROR;
+            crbrs_send_packet(RES_NACK, 1, &reason);
             break;
         }
-        crbrs_send_packet(RES_PASSWORD, (uint8_t)pos, buf);
+        if (!(meta.flags & FLAG_OCCUPIED))
+        {
+            reason = NACK_BAD_SLOT_IDX;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+
+        err = crbrs_read_pw(slot_idx, &pw);
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            reason = NACK_BAD_SLOT_IDX;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        else if (err != ESP_OK)
+        {
+            reason = NACK_STORAGE_ERROR;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        buf[0] = pw.len;
+        memcpy(buf + 1, pw.password, pw.len);
+        crbrs_send_packet(RES_PASSWORD, pw.len + 1, buf);
+        memset(pw.password, 0, sizeof(pw.password));
+        memset(buf, 0, sizeof(buf));
+        break;
+    }
+
+    case CMD_DELETE_CRED:
+    {
+        if (len != 2)
+        {
+            reason = NACK_BAD_PAYLOAD;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        uint8_t low = payload[1];
+        uint16_t slot_idx = payload[0] | (low << 8);
+        metadata meta;
+
+        esp_err_t err = crbrs_read_meta(slot_idx, &meta);
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            reason = NACK_BAD_SLOT_IDX;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        else if (err != ESP_OK)
+        {
+            reason = NACK_STORAGE_ERROR;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        if (!(meta.flags & FLAG_OCCUPIED))
+        {
+            reason = NACK_BAD_SLOT_IDX;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+
+        //need to add allocator that overwrites if occupied flag is not there
+        err = crbrs_delete(slot_idx);
+        if (err != ESP_OK)
+        {
+            reason = NACK_STORAGE_ERROR;
+            crbrs_send_packet(RES_NACK, 1, &reason);
+            break;
+        }
+        crbrs_send_packet(RES_OK, 0, NULL);
         break;
     }
 
@@ -270,8 +320,8 @@ void app_main(void)
     ESP_LOGI(TAG, "ATECC608b: %s", esp_err_to_name(err));
     // ESP_ERROR_CHECK(err);
     err = crbrs_store_init();
-    ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
+    ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
 
     uint16_t slot_idx = 32;
     metadata cred2 = {};
@@ -281,15 +331,26 @@ void app_main(void)
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         metadata cred1 = {slot_idx, 753, 752, 1, "github", "github.com", "example@gmail.com", "notes3"};
+
         err = crbrs_write_meta(slot_idx, &cred1);
-        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_LOGI(TAG, "NVS: cred1[ Slot: %u ,mTime: %u ,cTime: %u ,flag: %u ,site: %s , url: %s, email: %s, notes: %s ]", cred1.slot_idx, cred1.time_modified, cred1.time_created, cred1.flags, cred1.site, cred1.url, cred1.email, cred1.notes);
+
+        metadata cred3 = {132, 753, 752, 0, "claude", "claude.ai", "example@outlook.com", "note123213"};
+        err = crbrs_write_meta(cred3.slot_idx, &cred3);
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
+
+        metadata cred4 = {1, 755, 722, 1, "google", "google.com", "example@gmail.com", "no2tes3"};
+        err = crbrs_write_meta(cred4.slot_idx, &cred4);
+        ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
     }
     else
     {
-        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_LOGI(TAG, "NVS: cred2[ Slot: %u ,mTime: %u ,cTime: %u ,flag: %u ,site: %s , url: %s, email: %s, notes: %s ]", cred2.slot_idx, cred2.time_modified, cred2.time_created, cred2.flags, cred2.site, cred2.url, cred2.email, cred2.notes);
     }
 
@@ -303,18 +364,20 @@ void app_main(void)
         pass1.len = 10;
         memcpy(pass1.password, "asaasddasd", pass1.len);
         err = crbrs_write_pw(slot_idx, &pass1);
-        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_LOGI(TAG, "NVS: pass1[ len: %u ,password: %.*s ]", pass1.len, pass1.len, pass1.password);
     }
     else
     {
-        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_ERROR_CHECK(err);
+        ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_LOGI(TAG, "NVS: pass2[ len: %u ,password: %.*s ]", pass2.len, pass2.len, pass2.password);
     }
 
-    // err = crbrs_delete(slot_idx);
+    ESP_LOGI(TAG, "NVS: calling find...");
+    crbrs_find_meta(crbrs_storage);
+
     // ESP_LOGI(TAG, "NVS: %s (deleted)", esp_err_to_name(err));
     // ESP_ERROR_CHECK(err);
 

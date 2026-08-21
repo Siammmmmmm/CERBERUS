@@ -1,6 +1,8 @@
 #include "store.h"
 #include <stdio.h>
 #include "nvs_flash.h"
+#include "string.h"
+#include "stdlib.h"
 
 static const char *STORE_NAME = "credentials";
 
@@ -174,4 +176,46 @@ esp_err_t crbrs_delete(uint16_t slot_idx)
     err = nvs_commit(handle);
     nvs_close(handle);
     return err;
+}
+
+esp_err_t crbrs_find_meta(storage_handler storage)
+{
+    nvs_iterator_t it = NULL;
+    nvs_entry_info_t info;
+    metadata meta;
+    esp_err_t err = nvs_entry_find("cred", STORE_NAME, NVS_TYPE_BLOB, &it);
+    while (true)
+    {
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            break;
+        }
+        err = nvs_entry_info(it, &info);
+        if (err != ESP_OK)
+        {
+            break;
+        }
+        int cmp = strncmp(info.key, "meta:", 5);
+        if (cmp != 0)
+        {
+            goto next;
+        }
+        err = crbrs_read_meta(atoi(info.key + 5), &meta);
+        if (err != ESP_OK)
+        {
+            goto next;
+        }
+        if (meta.flags & FLAG_OCCUPIED)
+        {
+            storage(&meta);
+        }
+    next:
+        err = nvs_entry_next(&it);
+    }
+
+    if (it != NULL)
+    {
+        nvs_release_iterator(it);
+    }
+    return ESP_OK;
 }

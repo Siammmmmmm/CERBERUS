@@ -38,5 +38,7 @@ esp_err_t crbrs_write_meta(uint16_t slot_idx, const metadata *storage);
 
 esp_err_t crbrs_read_pw(uint16_t slot_idx, secret *storage);
 esp_err_t crbrs_write_pw(uint16_t slot_idx, const secret *storage);
+typedef void (*storage_handler)(const metadata *meta);
+esp_err_t crbrs_find_meta(storage_handler storage);
 
 #endif

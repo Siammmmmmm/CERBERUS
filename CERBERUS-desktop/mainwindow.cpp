@@ -177,6 +177,7 @@ void MainWindow::onMetadataComplete()
 
 void MainWindow::onPassReceived(QString password){
     ui->detailPasswordValue->setText(password);
+    pswrd = password;
     passwordValue(true);
 }
 
@@ -261,7 +262,7 @@ void MainWindow::on_fetchPasswordBtn_clicked()
     uint8_t high = (m_selected >> 8) & 0xFF;
         std::vector<uint8_t> payload = {low,high};
     protocol->sendCommand(CMD_GET_PASSWORD, payload);
-
+    timer->start(20000);
 }
 
 void MainWindow::onTimeout(){
@@ -273,10 +274,8 @@ void MainWindow::onTimeout(){
 }
 
 void MainWindow::on_copyPasswordBtn_clicked()
-{
-    pswrd = ui->detailPasswordValue->text(); //set the current password then copies
+{   //set the current password then copies
     QGuiApplication::clipboard()->setText(pswrd);
-    timer->start(20000);
 }
 
 void MainWindow::on_copyEmailBtn_clicked()
