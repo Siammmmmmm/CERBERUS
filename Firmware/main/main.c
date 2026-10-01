@@ -324,7 +324,7 @@ void app_main(void)
     ESP_ERROR_CHECK(err);
     ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
 
-    uint16_t slot_idx = 32;
+    uint16_t slot_idx = 0;
     metadata cred2 = {};
     memset(&cred2, 0xAA, sizeof(cred2));
 
@@ -338,12 +338,12 @@ void app_main(void)
         ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
         ESP_LOGI(TAG, "NVS: cred1[ Slot: %u ,mTime: %u ,cTime: %u ,flag: %u ,site: %s , url: %s, email: %s, notes: %s ]", cred1.slot_idx, cred1.time_modified, cred1.time_created, cred1.flags, cred1.site, cred1.url, cred1.email, cred1.notes);
 
-        metadata cred3 = {132, 753, 752, 0, "claude", "claude.ai", "example@outlook.com", "note123213"};
+        metadata cred3 = {132, 753, 752, 1, "claude", "claude.ai", "example@outlook.com", "note123213"};
         err = crbrs_write_meta(cred3.slot_idx, &cred3);
         ESP_ERROR_CHECK(err);
         ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
 
-        metadata cred4 = {1, 755, 722, 1, "google", "google.com", "example@gmail.com", "no2tes3"};
+        metadata cred4 = {1, 755, 722, 0, "google", "google.com", "example@gmail.com", "no2tes3"};
         err = crbrs_write_meta(cred4.slot_idx, &cred4);
         ESP_ERROR_CHECK(err);
         ESP_LOGI(TAG, "NVS: %s", esp_err_to_name(err));
@@ -378,6 +378,10 @@ void app_main(void)
 
     ESP_LOGI(TAG, "NVS: calling find...");
     crbrs_find_meta(crbrs_storage);
+
+    uint16_t next = 0;
+    err = crbrs_next_slot(&next);
+    ESP_LOGI(TAG, "next slot: %u (%s)", next, esp_err_to_name(err));
 
     // ESP_LOGI(TAG, "NVS: %s (deleted)", esp_err_to_name(err));
     // ESP_ERROR_CHECK(err);

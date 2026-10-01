@@ -7,6 +7,7 @@
 
 #define IV_LEN 12
 #define TAG_LEN 16
+#define MAX_SLOTS 1024
 
 // structs written by memcpy so changing order or types breaks existing record!!
 typedef struct
@@ -40,5 +41,6 @@ esp_err_t crbrs_read_pw(uint16_t slot_idx, secret *storage);
 esp_err_t crbrs_write_pw(uint16_t slot_idx, const secret *storage);
 typedef void (*storage_handler)(const metadata *meta);
 esp_err_t crbrs_find_meta(storage_handler storage);
+esp_err_t crbrs_next_slot(uint16_t *slot_idx);
 
 #endif

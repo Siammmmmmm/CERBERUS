@@ -219,3 +219,60 @@ esp_err_t crbrs_find_meta(storage_handler storage)
     }
     return ESP_OK;
 }
+
+esp_err_t crbrs_next_slot(uint16_t *slot_idx)
+{
+    nvs_iterator_t it = NULL;
+    nvs_entry_info_t info;
+    metadata meta;
+    uint8_t taken[(MAX_SLOTS + 7) / 8] = {0}; //rounded up so anything less than 8 slots doesnt break it
+    esp_err_t err = nvs_entry_find("cred", STORE_NAME, NVS_TYPE_BLOB, &it);
+    while (true)
+    {
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            break;
+        }
+        err = nvs_entry_info(it, &info);
+        if (err != ESP_OK)
+        {
+            break;
+        }
+        int cmp = strncmp(info.key, "meta:", 5);
+        if (cmp != 0)
+        {
+            goto next;
+        }
+        err = crbrs_read_meta(atoi(info.key + 5), &meta);
+        if (err != ESP_OK)
+        {
+            goto next;
+        }
+        if (meta.flags & FLAG_OCCUPIED)
+        {
+            uint16_t n = meta.slot_idx;
+            if (n < MAX_SLOTS)
+            { // mark every taken slot after finding the first byte
+                taken[n / 8] |= (1 << (n % 8));
+            }
+        }
+    next:
+        err = nvs_entry_next(&it);
+    }
+
+    if (it != NULL)
+    {
+        nvs_release_iterator(it);
+    }
+
+    for (uint16_t n = 0; n < MAX_SLOTS; n++)
+    {
+        if (((taken[n / 8]) & (1 << (n % 8))) == 0)
+        {//find first unmarked slot
+            *slot_idx = n;
+            return ESP_OK;
+        }
+    }
+
+    return ESP_ERR_NO_MEM;
+}
