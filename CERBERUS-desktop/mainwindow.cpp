@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     proxy = new CustomSort(this);
     timer = new QTimer(this);
     timer->setSingleShot(true);
-    QString password = "";
+    ui->delConfirmArea->setVisible(false);
 
     connectToDevice();
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::onDataReceived);
@@ -220,10 +220,32 @@ void MainWindow::handleFrame(uint8_t opcode, QByteArray payload)
         ui->deviceStatus->setText("Received: PONG");
         break;
 
+    case RES_OK:
+        ui->deviceStatus->setText("Received: OK");
+        model->remove(m_selected);
+        m_selected = -1;
+        onTimeout();
+        showConfirm(false);
+        ui->countLabel->setText(QString::number(model->rowCount()));
+        ui->detailStack->setCurrentIndex(0);
+        ui->credentialList->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
+        break;
+
     default:
         ui->deviceStatus->setText("NO CMD RECIEVED");
 
         break;
+    }
+}
+
+void MainWindow::showConfirm(bool confirm){
+    if(confirm){
+        ui->actionBar->setVisible(false);
+        ui->delConfirmArea->setVisible(true); //confirm section
+    }else{
+        ui->confirmSite->clear();
+        ui->delConfirmArea->setVisible(false);
+        ui->actionBar->setVisible(true); //cancel del
     }
 }
 
@@ -250,6 +272,7 @@ void MainWindow::onSelectionChanged(const QModelIndex &current, const QModelInde
     ui->favBtnDetail->setChecked((current.data(CredentialModel::FlagsRole).toInt() & FLAG_FAVORITE)
                                  != 0);
     ui->detailStack->setCurrentIndex(1);
+    showConfirm(false);
 }
 
 void MainWindow::on_fetchPasswordBtn_clicked()
@@ -284,6 +307,30 @@ void MainWindow::on_copyEmailBtn_clicked()
         return;
     }
     QGuiApplication::clipboard()->setText(ui->detailEmailValue->text()); //copies the email
+}
+
+void MainWindow::on_deleteBtn_clicked()
+{
+    showConfirm(true);
+}
+
+void MainWindow::on_delCancelBtn_clicked()
+{
+    showConfirm(false);
+}
+
+void MainWindow::on_delConfirmBtn_clicked()
+{
+    if(m_selected < 0){
+        return;
+    }
+    QString delStr = ui->confirmSite->text();
+    if(QString::compare(delStr, "delete", Qt::CaseInsensitive)== 0){
+        uint8_t lowB = m_selected & 0xFF;
+        uint8_t highB = (m_selected >> 8) & 0xFF;
+        std::vector<uint8_t> payload = {lowB,highB};
+        protocol->sendCommand(CMD_DELETE_CRED, payload);
+    }
 }
 
 MainWindow::~MainWindow()

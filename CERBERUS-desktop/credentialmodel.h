@@ -33,6 +33,8 @@ public:
                         int role = Qt::DisplayRole) const override;
 
     void append(const credential &metadata);
+    bool update(const credential &metadata);
+    bool remove(quint16 slot_idx);
     void clear();
 
 private:

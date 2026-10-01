@@ -53,6 +53,14 @@ private slots:
 
     void on_copyEmailBtn_clicked();
 
+    void on_deleteBtn_clicked();
+
+    void on_delConfirmBtn_clicked();
+
+    void on_delCancelBtn_clicked();
+
+    void showConfirm(bool confirm);
+
 private:
     Ui::MainWindow *ui;
     QSerialPort *serial;
@@ -66,6 +74,7 @@ private:
 
     int m_selected = -1;
     int m_before = -1;
+    uint8_t m_pending = 0;
 };
 
 #endif // MAINWINDOW_H

@@ -551,17 +551,21 @@ QLabel#detailCreated {
 QWidget#actionBar {
     background: #080d18;
     border-top: 1px solid #101828;
+    padding: 0px;
+    margin: 0px;
 }
 
 QPushButton#editBtn {
     background: #2563eb;
     color: white;
     border: none;
-    border-radius: 9px;
-    padding: 10px 14px;
-    font-size: 13px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
     font-weight: 600;
     text-align: center;
+    min-height: 26px;
+    max-height: 26px;
 }
 
 QPushButton#editBtn:hover {
@@ -572,16 +576,109 @@ QPushButton#deleteBtn {
     background: rgba(240, 74, 65, 0.12);
     border: 1px solid rgba(240, 74, 65, 0.5);
     color: #ff9d97;
-    border-radius: 9px;
-    padding: 10px 16px;
-    font-size: 13px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
     font-weight: 600;
     text-align: center;
+    min-height: 26px;
+    max-height: 26px;
 }
 
 QPushButton#deleteBtn:hover {
     border-color: rgba(224, 85, 107, 0.5);
     color: #e0556b;
+}
+
+/* ── ACTION STACK ── */
+QStackedWidget#actionStack {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+QStackedWidget#actionStack > QWidget {
+    background: #080d18;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* ── DELETE CONFIRM ── */
+QWidget#delBtnRow {
+background: transparent;
+border: none;
+margin: 0px;
+padding: 0px;
+}
+QWidget#delConfirmArea {
+    background: rgba(240, 74, 65, 0.06);
+    border: 1px solid rgba(240, 74, 65, 0.35);
+    border-radius: 9px;
+    padding: 8px;
+}
+
+QLabel#confirmText {
+    color: #ff9d97;
+    font-size: 12px;
+    background: transparent;
+    padding: 0px 2px;
+}
+
+QLineEdit#confirmSite {
+    background: #0b1322;
+    border: 1px solid rgba(240, 74, 65, 0.4);
+    border-radius: 7px;
+    padding: 7px 10px;
+    color: #dae1ef;
+    font-size: 13px;
+    selection-background-color: #f04a41;
+}
+
+QLineEdit#confirmSite:focus {
+    border-color: #f04a41;
+}
+
+QPushButton#delConfirmBtn {
+    background: rgba(240, 74, 65, 0.18);
+    border: 1px solid rgba(240, 74, 65, 0.55);
+    color: #ff9d97;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+QPushButton#delConfirmBtn:hover {
+    background: rgba(240, 74, 65, 0.28);
+    border-color: rgba(240, 74, 65, 0.75);
+    color: #ffb1ac;
+}
+
+QPushButton#delConfirmBtn:pressed {
+    background: rgba(240, 74, 65, 0.36);
+}
+
+QPushButton#delCancelBtn {
+    background: transparent;
+    border: 1px solid #16203a;
+    color: #7089b0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    text-align: center;
+}
+
+QPushButton#delCancelBtn:hover {
+    border-color: #243250;
+    color: #aec3f0;
+}
+
+QPushButton#delCancelBtn:pressed {
+    background: rgba(37, 99, 235, 0.18);
+    border-color: #2563eb;
 }
 
 /* ── LOCK OVERLAY ── */

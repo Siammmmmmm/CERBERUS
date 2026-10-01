@@ -198,7 +198,8 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
         err = crbrs_read_pw(slot_idx, &pw);
         if (err == ESP_ERR_NVS_NOT_FOUND)
         {
-            reason = NACK_BAD_SLOT_IDX;
+            // for creds with metadata but no password
+            reason = NACK_STORAGE_ERROR;
             crbrs_send_packet(RES_NACK, 1, &reason);
             break;
         }
@@ -248,7 +249,7 @@ void crbrs_dispatch(uint8_t opcode, uint8_t len, const uint8_t *payload)
             break;
         }
 
-        //need to add allocator that overwrites if occupied flag is not there
+        // need to add allocator that overwrites if occupied flag is not there
         err = crbrs_delete(slot_idx);
         if (err != ESP_OK)
         {

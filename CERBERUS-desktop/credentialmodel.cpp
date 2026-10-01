@@ -152,6 +152,30 @@ void CredentialModel::append(const credential &c)
     endInsertRows();
 }
 
+bool CredentialModel::update(const credential &c)
+{
+    for (int i = 0; i < rowCount(); ++i) {
+        if(c.slot_idx == m_cred.at(i).slot_idx){
+            m_cred[i] = c;
+            emit dataChanged(index(i, 0),index(i, ColumnCount - 1));
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CredentialModel::remove(quint16 slot_idx){
+    for (int i = 0; i < rowCount(); ++i) {
+        if(slot_idx == m_cred.at(i).slot_idx){
+            beginRemoveRows(QModelIndex(), i, i);
+            m_cred.removeAt(i);
+            endRemoveRows();
+            return true;
+        }
+    }
+    return false;
+}
+
 void CredentialModel::clear()
 {
     beginResetModel(); //updates visuals after clearing
